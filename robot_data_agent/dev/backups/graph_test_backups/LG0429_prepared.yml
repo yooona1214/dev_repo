@@ -1,0 +1,89 @@
+server_uri: neo4j+s://9bb7f8ec.databases.neo4j.io
+admin_user: neo4j
+admin_pass: 6divqnk_LBw-7zrAsvxNXvVCirJwboIbfSnU0FSYkCw
+database: neo4j
+basepath: ./
+
+pre_ingest:
+  - CREATE CONSTRAINT customerutterance_utterance IF NOT EXISTS FOR (n:CustomerUtterance) REQUIRE n.utterance IS UNIQUE;
+  - CREATE CONSTRAINT collisioncause_cause IF NOT EXISTS FOR (n:CollisionCause) REQUIRE n.cause IS UNIQUE;
+  - CREATE CONSTRAINT actionplan_plan IF NOT EXISTS FOR (n:ActionPlan) REQUIRE n.plan IS UNIQUE;
+  - CREATE CONSTRAINT selfaction_feasibility IF NOT EXISTS FOR (n:SelfAction) REQUIRE n.feasibility IS UNIQUE;
+  - CREATE CONSTRAINT manualreference_referenceneeded IF NOT EXISTS FOR (n:ManualReference) REQUIRE n.referenceNeeded IS UNIQUE;
+  - CREATE CONSTRAINT referencemethod_method IF NOT EXISTS FOR (n:ReferenceMethod) REQUIRE n.method IS UNIQUE;
+  - CREATE CONSTRAINT onsiteassistance_assistanceneeded IF NOT EXISTS FOR (n:OnSiteAssistance) REQUIRE n.assistanceNeeded IS UNIQUE;
+  - CREATE CONSTRAINT serviceprovider_provider IF NOT EXISTS FOR (n:ServiceProvider) REQUIRE n.provider IS UNIQUE;
+files:
+- chunk_size: 100
+  cql: "WITH $dict.rows AS rows\nUNWIND rows AS row\nMERGE (n:CustomerUtterance {utterance:\
+    \ row.`\uCDA9\uB3CC\uC744 \uB098\uD0C0\uB0B4\uB294 \uACE0\uAC1D\uC758 \uBC1C\uD654\
+    `})\n"
+  url: $BASE//home/rbrain/data_agent/dataLG0429_prepared.csv
+- chunk_size: 100
+  cql: "WITH $dict.rows AS rows\nUNWIND rows AS row\nMERGE (n:CollisionCause {cause:\
+    \ row.`\uCDA9\uB3CC\uC758 \uC6D0\uC778`})\n"
+  url: $BASE//home/rbrain/data_agent/dataLG0429_prepared.csv
+- chunk_size: 100
+  cql: "WITH $dict.rows AS rows\nUNWIND rows AS row\nMERGE (n:ActionPlan {plan: row.`\uC870\
+    \uCE58 \uBC29\uC548`})\n"
+  url: $BASE//home/rbrain/data_agent/dataLG0429_prepared.csv
+- chunk_size: 100
+  cql: "WITH $dict.rows AS rows\nUNWIND rows AS row\nMERGE (n:SelfAction {feasibility:\
+    \ toBooleanOrNull(row.`\uC790\uAC00\uC870\uCE58 \uAC00\uB2A5\uC5EC\uBD80`)})\n"
+  url: $BASE//home/rbrain/data_agent/dataLG0429_prepared.csv
+- chunk_size: 100
+  cql: "WITH $dict.rows AS rows\nUNWIND rows AS row\nMERGE (n:ManualReference {referenceNeeded:\
+    \ toBooleanOrNull(row.`\uC790\uAC00\uC870\uCE58 \uC2DC \uB9E4\uB274\uC5BC \uCC38\
+    \uC870\uC5EC\uBD80`)})\n"
+  url: $BASE//home/rbrain/data_agent/dataLG0429_prepared.csv
+- chunk_size: 100
+  cql: "WITH $dict.rows AS rows\nUNWIND rows AS row\nMERGE (n:ReferenceMethod {method:\
+    \ row.`\uC790\uAC00\uC870\uCE58 \uCC38\uC870\uBC29\uBC95`})\n"
+  url: $BASE//home/rbrain/data_agent/dataLG0429_prepared.csv
+- chunk_size: 100
+  cql: "WITH $dict.rows AS rows\nUNWIND rows AS row\nMERGE (n:OnSiteAssistance {assistanceNeeded:\
+    \ toBooleanOrNull(row.`\uCD9C\uB3D9 \uD544\uC694\uC5EC\uBD80`)})\n"
+  url: $BASE//home/rbrain/data_agent/dataLG0429_prepared.csv
+- chunk_size: 100
+  cql: "WITH $dict.rows AS rows\nUNWIND rows AS row\nMERGE (n:ServiceProvider {provider:\
+    \ row.`\uCD9C\uB3D9 \uB2F4\uB2F9\uC5C5\uCCB4`})\n"
+  url: $BASE//home/rbrain/data_agent/dataLG0429_prepared.csv
+- chunk_size: 100
+  cql: "WITH $dict.rows AS rows\nUNWIND rows as row\nMATCH (source:CustomerUtterance\
+    \ {utterance: row.`\uCDA9\uB3CC\uC744 \uB098\uD0C0\uB0B4\uB294 \uACE0\uAC1D\uC758\
+    \ \uBC1C\uD654`})\nMATCH (target:CollisionCause {cause: row.`\uCDA9\uB3CC\uC758\
+    \ \uC6D0\uC778`})\nMERGE (source)-[n:INDICATES]->(target)\n"
+  url: $BASE//home/rbrain/data_agent/dataLG0429_prepared.csv
+- chunk_size: 100
+  cql: "WITH $dict.rows AS rows\nUNWIND rows as row\nMATCH (source:CollisionCause\
+    \ {cause: row.`\uCDA9\uB3CC\uC758 \uC6D0\uC778`})\nMATCH (target:ActionPlan {plan:\
+    \ row.`\uC870\uCE58 \uBC29\uC548`})\nMERGE (source)-[n:RESOLVES]->(target)\n"
+  url: $BASE//home/rbrain/data_agent/dataLG0429_prepared.csv
+- chunk_size: 100
+  cql: "WITH $dict.rows AS rows\nUNWIND rows as row\nMATCH (source:ActionPlan {plan:\
+    \ row.`\uC870\uCE58 \uBC29\uC548`})\nMATCH (target:SelfAction {feasibility: toBooleanOrNull(row.`\uC790\
+    \uAC00\uC870\uCE58 \uAC00\uB2A5\uC5EC\uBD80`)})\nMERGE (source)-[n:CAN_SELF_RESOLVE]->(target)\n"
+  url: $BASE//home/rbrain/data_agent/dataLG0429_prepared.csv
+- chunk_size: 100
+  cql: "WITH $dict.rows AS rows\nUNWIND rows as row\nMATCH (source:SelfAction {feasibility:\
+    \ toBooleanOrNull(row.`\uC790\uAC00\uC870\uCE58 \uAC00\uB2A5\uC5EC\uBD80`)})\n\
+    MATCH (target:ManualReference {referenceNeeded: toBooleanOrNull(row.`\uC790\uAC00\
+    \uC870\uCE58 \uC2DC \uB9E4\uB274\uC5BC \uCC38\uC870\uC5EC\uBD80`)})\nMERGE (source)-[n:NEEDS_MANUAL]->(target)\n"
+  url: $BASE//home/rbrain/data_agent/dataLG0429_prepared.csv
+- chunk_size: 100
+  cql: "WITH $dict.rows AS rows\nUNWIND rows as row\nMATCH (source:ManualReference\
+    \ {referenceNeeded: toBooleanOrNull(row.`\uC790\uAC00\uC870\uCE58 \uC2DC \uB9E4\
+    \uB274\uC5BC \uCC38\uC870\uC5EC\uBD80`)})\nMATCH (target:ReferenceMethod {method:\
+    \ row.`\uC790\uAC00\uC870\uCE58 \uCC38\uC870\uBC29\uBC95`})\nMERGE (source)-[n:USES_METHOD]->(target)\n"
+  url: $BASE//home/rbrain/data_agent/dataLG0429_prepared.csv
+- chunk_size: 100
+  cql: "WITH $dict.rows AS rows\nUNWIND rows as row\nMATCH (source:ActionPlan {plan:\
+    \ row.`\uC870\uCE58 \uBC29\uC548`})\nMATCH (target:OnSiteAssistance {assistanceNeeded:\
+    \ toBooleanOrNull(row.`\uCD9C\uB3D9 \uD544\uC694\uC5EC\uBD80`)})\nMERGE (source)-[n:NEEDS_ASSISTANCE]->(target)\n"
+  url: $BASE//home/rbrain/data_agent/dataLG0429_prepared.csv
+- chunk_size: 100
+  cql: "WITH $dict.rows AS rows\nUNWIND rows as row\nMATCH (source:OnSiteAssistance\
+    \ {assistanceNeeded: toBooleanOrNull(row.`\uCD9C\uB3D9 \uD544\uC694\uC5EC\uBD80\
+    `)})\nMATCH (target:ServiceProvider {provider: row.`\uCD9C\uB3D9 \uB2F4\uB2F9\uC5C5\
+    \uCCB4`})\nMERGE (source)-[n:PROVIDED_BY]->(target)\n"
+  url: $BASE//home/rbrain/data_agent/dataLG0429_prepared.csv

@@ -1,0 +1,95 @@
+import os
+import pandas as pd
+import fitz  # PyMuPDF
+from langchain_core.documents import Document
+from langchain_experimental.graph_transformers import LLMGraphTransformer
+from langchain_community.graphs import Neo4jGraph
+from langchain_openai import ChatOpenAI
+
+os.environ["OPENAI_API_KEY"] = (
+    "sk-proj-4ebppYSwaJFfWxESdsOcT3BlbkFJ3RMHQxQlSkuBZ07ZX2Xe"
+)
+os.environ["LANGCHAIN_TRACING_V2"] = "true"
+os.environ["LANGCHAIN_PROJECT"] = "Multi-agent Collaboration"
+os.environ["LANGCHAIN_ENDPOINT"] = "https://api.smith.langchain.com"
+os.environ["LANGCHAIN_API_KEY"] = "ls__3b0b4639413547b1992222420ad58d30"
+
+# Neo4j 연결 정보 설정
+os.environ["NEO4J_URI"] = "neo4j+s://68f3106f.databases.neo4j.io"
+os.environ["NEO4J_USERNAME"] = "neo4j"
+os.environ["NEO4J_PASSWORD"] = "ngKv-deqLXF1lhwAwrN9xPOZrW7IrxuDiehBMPS1wYk"
+
+# CSV 파일 경로
+csv_file1 = "/home/rbrain/data_agent/data/LG0429_.csv"
+csv_file2 = "/home/rbrain/data_agent/data/플랫폼 데이터 규격 - 주기.csv"
+
+# PDF 파일 경로
+pdf_file = "/home/rbrain/data_agent/data/LG_Error_0403 - LG_Error_0403.csv.pdf"
+
+# CSV 파일 로드
+df1 = pd.read_csv(csv_file1)
+# df2 = pd.read_csv(csv_file2)
+
+
+# PDF 파일 텍스트 추출
+def extract_text_from_pdf(pdf_file):
+    doc = fitz.open(pdf_file)
+    text = ""
+    for page_num in range(len(doc)):
+        page = doc.load_page(page_num)
+        text += page.get_text()
+    return text
+
+
+pdf_text = extract_text_from_pdf(pdf_file)
+
+# LLM 초기화
+llm = ChatOpenAI(model_name="gpt-4o", temperature=0)
+
+# LLM을 이용한 그래프 변환기 초기화
+llm_transformer = LLMGraphTransformer(llm=llm)
+
+# CSV 데이터를 Document 객체로 변환
+documents = [
+    Document(page_content=row.to_string())  # 예시로 각 행을 Document로 변환
+    for _, row in pd.concat([df1]).iterrows()
+]
+
+print(documents)
+
+# PDF 데이터를 Document 객체로 변환
+pdf_document = Document(page_content=pdf_text)
+
+# 모든 문서를 하나의 리스트로 결합
+all_documents = documents + [pdf_document]
+print("\n\n\n\all", all_documents)
+
+
+# 문서를 그래프 문서로 변환
+graph_documents = llm_transformer.convert_to_graph_documents(documents)
+
+# Neo4j 그래프 인스턴스 생성
+graph = Neo4jGraph()
+
+# 그래프에 문서 추가
+graph.add_graph_documents(graph_documents)
+
+print("Graph documents added to Neo4j.")
+
+
+"""
+    (로봇) - [제공] -> (배송 서비스)
+(배송 서비스) - [대상] -> (목적지)
+(고객) - [입력] -> (목적지)
+(고객) - [사용] -> (UI)
+(UI) - [제공] -> (ROS Package)
+(ROS Package) - [전달] -> (서비스 명령)
+(서비스 명령) - [전달] -> (Drive ROS Package)
+(Drive ROS Package) - [명령] -> (nav/start 토픽)
+(nav/start 토픽) - [명령] -> (로봇 하드웨어)
+(서비스 info DB) - [저장] -> (서비스 ID, 서비스 유형, 목적지, 이용 서랍 정보, 서비스 시작 시간, 서비스 진행 상태, 서비스 취소 여부)
+(주행 info DB) - [저장] -> (주행 시작 여부, 주행 상태)
+(주행 상태) - [상태] -> (무빙, 정지, 장애물, 취소)
+(주행 중) - [발생] -> (경로 변경 이벤트)
+(주행 중) - [발생] -> (일시정지, 서비스 취소, 비상정지 이벤트)
+"""
