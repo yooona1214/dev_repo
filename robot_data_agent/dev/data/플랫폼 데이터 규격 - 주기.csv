@@ -1,0 +1,78 @@
+,From,To,,latest modified : 23년-7월 21일,,규격서  Version : 1.1.23
+,로봇,플랫폼,,,,
+,,,,,,
+,,,,,,
+resourceId,properties,type,description,비고,,주기 데이터 예시
+rbt_status,create_time,string,데이터 생성시간,yyMMddHH24mmssSSS,,"{
+  ""creat_time"":210304104223333
+  ""firmware_version"": ""1.1.2c""
+  ""x"":-4.321455235,
+  ""y"":5.543125616,
+  ""battery"":99.4,
+  ""err_cd"":""obstacle_detect"",
+  ""drive_status"":2, //0 대기 1 주행중 2 주행완료 3 취소 ....
+  ""speed"":0.4 // m/s
+  ""heading"":327.5,
+  ""map_id"":""chosun13""
+  ""from_node"":""n1"",
+  ""to_node"":""n5"",
+  ""floor"":13,
+  ""section"":2,
+  ""service"":{}
+}"
+,firmware_version,string,펌웨어 버전,1.1.2c,,
+,x,double,x 좌표,,,
+,y,double,y 좌표,,,
+,battery,double,배터리 잔여율 (%),,,
+,drive_status,integer,로봇의 주행 상태,로봇팀 상세 정의,,
+,speed,double,로봇의 주행 속도,,,
+,heading,double,로봇의 방향 값 (degree 기준.),플랫폼 내부  rad to degree 변환 필요.,,
+,map_id,String,현재 맵 id,,,
+,from_node,String,현재 출발노드,,,
+,to_node,String,현재 목적노드,,,
+,current_node,String,현재 위치한 노드,,,
+,charge,boolean,충전 여부,true/false,,
+,charge_type,string,유선충전연결 여부,"Wireless(무선), Wire(유선), None(충전 아님)",,
+,process_health,string,로봇 펌웨어 상태,"None(상태 확인불가)', 'healthy(이상없음)', 'error(에러)', 'stopped(의도적인 중지상태)'",,
+,service,JsonObj,서비스 특화 데이터,추후 생성시 추가,,
+,floor,string,로봇이 위치한 층,,,
+,section,string,로봇이 위치한 구역,,,
+,service_mode,String,서비스 모드,"현재 수행 중인 task_code (ex. delivering, returning, disinfecting)
+아래의 규격 추가로 Deprecate 예정",,
+,task,JsonObj,현재 수행중인 Task 정보,"{
+    task_id : …
+    task_code : …
+    task_status : serving ...
+}
+* 하단 규격 참고",,
+,,,,  ,,
+,,,,,,
+[서빙로봇],,,, ,,
+properties,factor,type,description,비고,,
+,,,,로봇 특화정보 필요 시 service(JsonObj)에 항목 추가,,
+,,,,,,
+[방역로봇],,,,,,
+properties,factor,,description,예시 ,,
+env,pm10,double,PM 1.0  (단위 : ug/m^3),,,
+,pm25,double,PM 2.5 (단위 : ug/m^3),,,
+,pm100,double,PM 10 (단위 : ug/m^3),,,
+,co2,double,CO2 (단위 : PPM),,,
+,tvoc,double,TVOC (단위 : PPB),,,
+,o3,double,O3 (단위 : PPB),,,
+,temperature,double,온도 (단위 : degree),,,
+,humidity,double,습도 (단위 : percent),,,
+,plazma,String,플라즈마 on/off 상태,,,
+,uvlamp,String,UV 램프 on/off 상태,,,
+,air_cleaning,String,공기 청정 on/off 상태,,,
+,fan,String,"0, 1,2,3 세기","0, 1, 2, 3, auto",,
+,start_cond,String,서비스 시작을 위한 배터리 잔량,85%,,
+,return_cond,String,홈 복귀를 위한 배터리 잔량,15%,,
+,remain_time,String,태스크 수행 중일 경우 남은 시간,"임무 중인 경우 : 00:00:57
+Idle 상태의 경우 : 00:00:00",,
+,,,,,,
+,,,,,,
+[task],,,,,,
+properties,factor,,description,예시 ,,
+task,task_id,String,task 아이디,로봇 아이디 + yyMMddHH24mmssSSS,,
+,task_code,String,task 코드 ,,,
+,task_status,String,task 진행 상태,,,
