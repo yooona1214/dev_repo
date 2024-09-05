@@ -15,14 +15,17 @@ class DBManager:
         self.target_db = 'raa_db'  # 실제 사용할 데이터베이스 이름
         self.filtered_turns = None
 
-    def add_turn(self, session_id, user_text, agent_text, agent_id):
+    def add_turn(self, robot_id, session_id, time_stamp, user_text, agent_text, agent_id):
+        "대화 턴을 Redis 캐쉬 메모리 저장"
         turn = {
+            "session_id" : session_id,
+            "time_stamp" : time_stamp,
             "user": user_text,
             "agent": agent_text,
             "agent_id": agent_id,
             "timestamp": str(datetime.now())
         }
-        self.redis_client.rpush(session_id, json.dumps(turn))  # 세션 ID를 키로 사용하여 리스트에 추가
+        self.redis_client.rpush(robot_id, json.dumps(turn))  # 로봇 ID를 키로 사용하여 리스트에 추가
 
     def get_session_id(self):
         return datetime.now().strftime("%Y%m%d%H%M%S")
@@ -124,14 +127,28 @@ class DBManager:
                 except Exception as e:
                     print(f"Error closing connection: {e}")
                     
-    def get_conversation_history(self, session_id, agent_id_filter):
-        """특정 세션과 에이전트 ID에 해당하는 대화 히스토리를 가져오는 함수"""
-        all_turns = self.redis_client.lrange(session_id, 0, -1)
-        filtered_turns = []
-        for turn in all_turns:
-            turn_data = json.loads(turn)
-            if turn_data['agent_id'] == agent_id_filter:
-                filtered_turns.append(turn_data)
-        self.filtered_turns = filtered_turns
-        return filtered_turns
+    def get_conversation_history(self, robot_id, session_id):
+        """특정 로봇과 세션 ID에 해당하는 대화 히스토리를 가져오는 함수"""
+        try:
+            # Redis에서 해당 robot_id의 모든 대화 히스토리를 가져옴
+            all_turns = self.redis_client.lrange(robot_id, 0, -1)
+            
+            # Redis에 해당 robot_id의 대화가 없는 경우 빈 리스트를 반환
+            if not all_turns:
+                return []
+
+            filtered_turns = []
+            for turn in all_turns:
+                turn_data = json.loads(turn)
+                
+                # session_id에 맞는 데이터만 필터링하여 수집
+                if turn_data['session_id'] == session_id:
+                    filtered_turns.append(turn_data)
+
+            return filtered_turns
+
+        except (KeyError, json.JSONDecodeError) as e:
+            # 예외 발생 시 빈 리스트 반환
+            print(f"Error retrieving conversation history: {e}")
+            return []
     

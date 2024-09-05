@@ -1,5 +1,27 @@
 # Robot AI Agent
 
+
+## 실행방법 ##
+## FastAPI로 로컬 서버 생성
+python -m uvicorn server_api:app --host 0.0.0.0 --port 8000 --reload --log-level debug
+
+## 클라이언트 파일(로봇입력)
+python server_api_client_test.py
+
+# ######################
+
+
+
+
+
+
+
+## ngrok 토큰 등록
+ngrok config add-authtoken 2amxjrTAq8tsD02o2Ds4JqgCges_2hTjD1iZVStiwptCWpZfn
+
+## Ngrok로 서버 접속 주소 생성 
+ngrok http 8000
+
 메인 파일
 - main.py
 - 입력값 받은 후 라우터 전달

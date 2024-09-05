@@ -44,15 +44,13 @@ llm_4_o = ChatOpenAI(model="gpt-4o-mini-2024-07-18")
 llm_4_o_m = ChatOpenAI(model="gpt-4o-mini")
 llm_3_5 = ChatOpenAI(model="gpt-3.5-turbo-0125")
 
-llm_google = llm_4_t
+llm_google = llm_4_o
 llm_goal_builder = llm_4_o
-llm_reply_question = llm_4_t
-llm_summary = llm_4_t
+llm_reply_question = llm_4_o
+llm_summary = llm_4_o
 
 # path
-csv_path = pkg_resources.files("robot_info").joinpath("gallery_artwork.csv")
-csv_path2 = pkg_resources.files("robot_info").joinpath("gallery_artwork_description.csv")
-
+csv_file_path = pkg_resources.files("robot_info").joinpath("gallery_artwork_copy.csv")
 
 
 class GeneralChatAgent:
@@ -89,41 +87,22 @@ class GeneralChatAgent:
 class GoalInferenceAgent:
     def __init__(self, db_manager, goal_json_path):
         self.db_manager = db_manager
+        self.chat_history = None
         self.base_goal_json_path = goal_json_path
-        
-        # 기본 로봇 셋팅
-        self.chat_history = []
-        self.poi_list = []
-        self.new_service = False
-        self.robot_id = None
-        self.session_id = None
-        self.goal_generated = None
-        self.current_agent = "goal_chat_agent" # 맨처음엔 goal_chat한테 가게 설정해야함
-        self.ro_x = None
-        self.ro_y = None
-        
+
         # 체인버전
         self.goal_builder_chain = (
             goal_builder_prompt | llm_goal_builder | StrOutputParser()
         )
 
-        # Agent 1: 대화 및 csv를 통한 list 생성, tool 사용 에이전트 버전
-        robot_info_data = CSVLoader(csv_path).load()
-        rag_robot_info1 = create_vector_store_as_retriever(
-            data=robot_info_data,
-            str1="KT_Docent_Robot_Gallery_Artwork_Information",
-            str2="This is a data containing poi, name, artist and TTS path for the artworks.",
-        )
-        
-        rag_robot_info2 = create_vector_store_as_retriever2(
-            csv_path=csv_path2,
+        # tool 사용 에이전트 버전
+        #robot_info_data = CSVLoader(csv_path).load()
+        rag_robot_info = create_vector_store_as_retriever2(
+            csv_path=csv_file_path,
             str1="KT_Docent_Robot_Gallery_Artwork_Information",
             str2="This is a data containing poi, name, artist and description for the artworks.",
         )
-        tool_robot_info1 = [rag_robot_info1]
-        tool_robot_info2 = [rag_robot_info2]
-        
-        tool_robot_info = tool_robot_info2
+        tool_robot_info = [rag_robot_info]
 
         goal_builder_agent = create_openai_functions_agent_with_history(
             llm_goal_builder, tool_robot_info, goal_builder_prompt
@@ -131,23 +110,6 @@ class GoalInferenceAgent:
         self.goal_builder_executor = AgentExecutor(
             agent=goal_builder_agent, tools=tool_robot_info, verbose=True
         )
-        
-        # Agent2: 골 제이슨 생성 에이전트
-        rag_robot_info_for_json = create_vector_store_as_retriever2(
-            csv_path=csv_path2,
-            str1="KT_Docent_Robot_Gallery_Artwork_Information",
-            str2="This is a data containing poi, name, artist and description for the artworks.",
-        )
-        
-        tool_robot_info_for_json = [rag_robot_info_for_json]
-        
-        goal_json_agent = create_openai_functions_agent_with_history(
-            llm_goal_builder, tool_robot_info_for_json, goal_json_prompt
-        )
-        self.goal_json_executor = AgentExecutor(
-            agent=goal_json_agent, tools=tool_robot_info_for_json, verbose=True
-        )
-             
 
         # self.reply_question_agent = create_openai_functions_agent_with_history(llm_reply_question, [], reply_question_prompt)
         # self.reply_question_executor = AgentExecutor(agent=self.reply_question_agent, tools=[], verbose=True)
@@ -181,28 +143,17 @@ class GoalInferenceAgent:
     def save_goal_json(self, session_id, goal_data):
         """세션별 goal.json 파일에 현재 상태를 저장"""
         goal_json_path = self._get_goal_json_path(session_id)
-        
-        # 불필요한 ```json 제거
-        cleaned_json_data = goal_data.strip('```json').strip('```').strip()
+        with open(goal_json_path, "w") as f:
+            json.dump(goal_data, f, indent=4)
 
-        # JSON 문자열을 Python 딕셔너리로 변환
-        try:
-            parsed_data = json.loads(cleaned_json_data)
-
-            # JSON 데이터를 파일에 저장
-            with open(goal_json_path, "w", encoding='utf-8') as f:
-                json.dump(parsed_data, f, indent=4, ensure_ascii=False)  # JSON 데이터를 파일로 저장
-            print(f"JSON 데이터가 '{goal_json_path}' 파일로 저장되었습니다.")
-        
-        except json.JSONDecodeError as e:
-            print(f"JSON 디코딩 오류: {e}")
-
-    def _update_goal_json_with_user_input(self, poi_list, goal_data):
+    def _update_goal_json_with_user_input(self, user_input, goal_data):
         """LLM을 사용하여 사용자의 입력을 해석하고 goal.json을 업데이트합니다."""
-        prompt = f"Poi_list: {poi_list}\nCurrent goal data:\n{json.dumps(goal_data, indent=4)}\nBased on the poi list, update the goal data accordingly."
-        response = self.goal_json_executor.invoke(
+        prompt = f"User input: {user_input}\nCurrent goal data:\n{json.dumps(goal_data, indent=4)}\nBased on the user input, update the goal data accordingly."
+        response = self.goal_builder_executor.invoke(
             {"input": prompt, "chat_history": self.chat_history}
         )
+        print("RESPONSE: \n", response['output'])
+        # updated_goal_data = json.loads(response['output'])
         updated_goal_data = response['output']
         return updated_goal_data
 
@@ -244,93 +195,14 @@ class GoalInferenceAgent:
             "timestamp": str(datetime.now()),
         }
         self.db_manager.redis_client.rpush(session_id, json.dumps(turn))
-        
-    def check_new_service(self, robot_id):
-        "맨 처음 발화가 들어온 시점으로 세션 id 자체 생성"
-        if not self.new_service:
-            self.session_id = self.db_manager.get_session_id()
-            self.new_service = True
-            self.robot_id = robot_id
-        
-        return self.session_id
 
-    def route(self, user_input, robot_x, robot_y, session_id):
+    def respond(self, user_input, session_id):
+        # Goal 추론 로직
         # 챗 히스토리 로드
-        self.chat_history = self.db_manager.get_conversation_history(self.robot_id, session_id)  
+        self.chat_history = self.db_manager.get_conversation_history(
+            session_id, "robot_control"
+        )  # robot_id도 세션 아이디에 추가
 
-        # 로봇 x,y좌표 초기화
-        self.ro_x = robot_x
-        self.ro_y = robot_y
-        
-        # 특정 조건에 따라 하위 에이전트 선택 및 실행
-        # Agent1. goal_chat_agent = input: 사용자 발화 / output: csv파일을 참조해서 가야할 목적지 list + 이 list가 맞는지 대답생성
-        # Agent2. goal_json_agent = input: Agent1의 out인 list / output: goal.json
-        # Agent3. goal_verify_agent = input: 챗 히스토리 / output: 알겠습니다 대답생성 or 다시 서비스를 생성하겠습니다 후 Agent1 라우팅 
-        
-        # Agent1 실행
-        if self.current_agent == "goal_chat_agent":
-            # Step 1: Agent1 실행 - 사용자 대화 처리 및 POI 리스트 생성
-            poi_list, respond_goal_chat, goal_generated = self.respond_goal_chat_agent(user_input, self.ro_x, self.ro_y, session_id)
-            self.poi_list = poi_list  # 다음 에이전트 호출 시 사용하기 위해 저장     
-            
-            if not goal_generated: # goal이 아직 완성되지 않거나, 일반 대화 대답일 때 
-                return self.current_agent, respond_goal_chat
-
-            # Step 2: goal이 완성 되면, Agent2 실행
-            goal_json = self.respond_goal_json_agent(self.poi_list, session_id)
-            
-            # Step 3: Agent3 실행 - 최종 서비스 실행 여부 질문
-            final_response = self.respond_goal_verify_agent(goal_json)
-            self.current_agent = "goal_verify_agent"
-            
-            return self.current_agent, final_response
-        
-        elif self.current_agent == "goal_verify_agent":
-            user_response = self.respond_goal_verify_agent(user_input)
-            
-            if user_response: # 긍정
-                #Task매니지먼트 에이전트에게 goal.json 보내고, 서비스 실행하겠습니다 대답 리턴하기
-                return
-            else: # 부정
-                self.current_agent = "goal_chat_agent"
-                
-                # 다시 시작... 얜 어캐?
-                return
-
-            
-    def respond_goal_chat_agent(self, user_input, robot_x, robot_y, session_id):
-        ## 프롬프트 수정해서 에이전트 만들어야 함##
-        # poi_list, respond_goal_chat = "something~~~"
-        response = self.goal_builder_executor.invoke(
-            {"input": user_input, "chat_history": self.chat_history, "robot_x": robot_x, "robot_y": robot_y}
-        )
-        print("\n #####OUTPUT:  \n", response)
-        
-        # 불필요한 문자열 부분 제거 ('```json'과 '```' 제거)
-        output_data = response["output"]
-        output_data_cleaned = output_data.replace("```json", "").replace("```", "").strip()
-
-        # JSON 문자열을 Python 딕셔너리로 변환
-        try:
-            parsed_output = json.loads(output_data_cleaned)
-            
-            # 각 키에 대한 값 추출
-            poi_list = parsed_output["poi_list"]
-            respond_goal_chat = parsed_output["respond_goal_chat"]
-            goal_generated = parsed_output["goal_generated"]
-
-            # 값 출력
-            print("*POI List:", poi_list)
-            print("**Respond Goal Chat:", respond_goal_chat)
-            print("***Goal Generated:", goal_generated)
-            
-        except json.JSONDecodeError as e:
-            print(f"JSON 디코딩 오류: {e}")
-                
-        return poi_list, respond_goal_chat, goal_generated
-        
-    def respond_goal_json_agent(self, poi_list, session_id):
-        
         # 세션 별 goal.json 유무 확인 및 생성
         self._copy_base_goal_json(session_id)
         goal_data = self.load_goal_json(session_id)
@@ -338,22 +210,33 @@ class GoalInferenceAgent:
         print("Initial_goal: ", goal_data)
 
         # LLM을 사용하여 사용자의 발화를 해석하고 goal.json 업데이트
-        goal_data = self._update_goal_json_with_user_input(poi_list, goal_data)
-
+        goal_data = self._update_goal_json_with_user_input(user_input, goal_data)
         print("========================")
         print("Current_goal: ", goal_data)
-                
-        # 업데이트한 goal.json 저장
-        self.save_goal_json(session_id, goal_data)
-        
-        return goal_data
-    
-    def respond_goal_verify_agent(self, user_input):    
-        ## 프롬프트 수정해서 에이전트 만들어야 함##
-        
-        return 
-        
 
+        # 테스트용
+        if input("Y/N: ") == "Y":
+            self.save_goal_json(session_id, goal_data)
+
+            # 빈 필드 확인
+            if self._check_incomplete_fields(goal_data):
+                # 빈 값이 있으면, 추가 정보를 요청하는 질문 생성
+                response = self._generate_question(goal_data)
+                question = response["output"]
+                return question
+
+
+            else:
+                # 모든 값이 채워졌으면 요약 발화 생성
+                summary_response = self._generate_summary(goal_data)
+                summary_text = summary_response["output"]
+
+                # 요약 발화를 사용자에게 전달 (여기서는 출력으로 가정)
+                print(f"Summary for the user: {summary_text}")
+
+                # 서비스 요약 발화의 긍정을 확인하여 goal_generated를 True로 업데이트
+                self.save_goal_json(session_id, goal_data)
+                return "Goal generated and updated."
 
 
 class GoalVerificationAgent:
