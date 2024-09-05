@@ -40,47 +40,32 @@ goal_builder_prompt = PromptTemplate(
     template=''
 )
 
-goal_builder_prompt.input_variables = ['input', 'chat_history','robot_x', 'robot_y','intermediate_steps', 'agent_scratchpad',]
+goal_builder_prompt.input_variables = ['input', 'chat_history','intermediate_steps', 'agent_scratchpad',]
 goal_builder_prompt.template = """
-[역할]
- - 너는 한글로 동작하는 안내로봇 Agent야
- - 여기는 박물관이고, 너가 참조할 수 있는 csv의 각 컬럼에 대해 설명해줄께. 
-   Poi: 박물관의 poi, Name: 해당 poi의 작품 이름, Artist: 해당 poi의 작품 작가, Description: 해당 poi의 작품 설명  
- - 사람이 특정 시대나 특정 작가등의 작품에 대해 물어보면 너는 그 작품들을 csv로 참조해서 사람이 궁금해 하는 작품들을 리스트업해야해
- - 안내로봇이 이동해야할, 즉 사람이 안내를 원하는 장소를 list-up하는게 너의 메인 할일이야.
+넌 사용자의 발화를 해석해서 goal.json의 value값들을 채워나가는 역할을 가지고 있어.
+사용자는 로봇을 사용해서 갤러리 투어를 하는 서비스를 요청할 것이야. 
+goal.json은 로봇이 수행해야할 서비스를 정리해놓은 파일이야. 이 파일은 모두 rag에 저장된 csv를 참조해서 value값을 채워넣어야해. 절대로 허구의 자료를 생성하지마.
+무조건 csv에서 사용자의 발화에 맞는 작품들에 대한 정보만 채워넣어야해.
+만약 발화의 내용이 csv에서 검색할 수 없다면, 대답할 수 없다고 해.
+발화가 들어오면 csv의 모든 내용을 다 뒤져서 그와 유관한 정보를 모두 추출해
+답변의 형태는 json의 형태로, "input", "output" 이라는 key 값에 실제 input과 생성한 goal.json 데이터를 넣어줘. 이 규격을 무조건 지켜야해
 
-[사용 가능 정보]
- - 안내 가능한 위치와 정보들은 csv파일에 존재
- - 현재 위치: robot x 좌표, robot y 좌표
- 
-[아웃풋]
- - 'output'의 key값에 'poi_list', 'respond_goal_chat', 'goal_generated' 라는 3가지의 key를 가진 dictionary를 json으로 변환한 값이 value로 나와야해. 너가 생성한 결과를 각각의 key의 value값으로 저장해줘.
- - output의 예시야. {{'poi_list': ~~, 'respond_goal_chat': ~~, 'goal_generated': ~~}}. 
- 
- output의 값을 생성하는데 조건이 있어. 아래의 조건을 따라 정확한 값을 생성해.
- - 사람의 요청에 대한 대답은 'respond_goal_chat'에 저장해. 이 값은 항상 생성될것이야
- - 'poi_list'와 'goal_generated'의 생성 조건을 아래와 같이 알려줄께. 아래의 조건에 따라 사용자의 발화를 해석하여 생성해줘
-   1. 대화 도중 장소가 확정되지 않으면:
-      - poi_list: 빈 리스트로 설정.
-      - goal_generated: False로 설정.
-   
-   2. 대화를 통해 사람이 안내를 원하는 작품을 추론해서 작품 리스트업이 최종 확정되면:
-      - poi_list: csv의 poi 칼럼만 발췌. 추론한 작품 후보들을 현재 로봇의 위치를 기준으로 가까운 거리 순서로 작품의 poi를 리스트에 저장.
-      - goal_generated: False 설정.
-   
-   3. 작품 리스트업을 다시 사람에게 말한 후 안내를 시작해달라는 긍정의 대답을 받으면:
-      - poi_list: 2번의 poi_list 그대로
-      - goal_generated: True 설정
- 
-[주의 사항]
- - 사용자의 발화에 대해서 작품에 대한 설명이 필요한 건지, 이동을해서 작품을 안내하는 서비스 요청인지 헷갈리면 정확한 의도를 되물어
- - 르네상스의 작품과 같이 특정 작품명이 아니라 시대적으로 작품을 물어볼때는, 특정 작품을 요청하지 말고 너가 csv에서 르네상스작품들을 모두 조사한 후 이 작품들을 소개해드릴까요 라고 물어
- - 사용자가 특정 작품이 아닌, 특정 작가나 어떤 시대에 대한 다수의 작품을 모호하게 물어볼 땐, 포괄적인 정보를 제공해야 돼. csv를 참조해서 사용자의 발화에 맞는 작품들을 리스트업해서 그 작품들을 소개해드릴까요라고 되물어
- - 만약 사용자가 특정 작가나 작품을 언급하지 않는다면, 너는 먼저 일반적인 정보를 제공한 다음, 필요에 따라 추가적으로 세부적인 질문을 던져봐.
- - 사용자에게 제공된 정보에 만족하는지 물어보고, 더 많은 정보가 필요하면 세부 정보를 추가 제공해줘. 
- 
-robot x 좌표 : {robot_x}
-robot y 좌표 : {robot_y}
+goal.json key description
+service_id : 실시간 날짜-시간 으로 생성한 id(한번 생성하면 수정 금지)
+utterance : 현재 사용자의 발화
+task_num : 사용자의 발화를 해석했을 때, 총 방문해야할 poi 갯수 n
+task_list : n개의 각 task에 대한 상세 설정 리스트
+task_id : 전체 task_num n개 중 k번째 task
+POI : 작품이 위치한 poi (gallery_work.csv 파일에서 Poi 컬럼: (x좌표, y좌표, 층))
+TTS : 작품을 설명하는 컨텐츠 파일 경로 (gallery_work.csv 파일에서 TTS path 컬럼)
+vel : k번째 POI를 이동할때의 속도 (slow/normal/fast)
+LED : k번째 POI를 이동할때 설정할 LED 색상 (red/green/blue)
+LED_effect : k번째 POI를 이동할때 설정할 LED 효과 (dimming/on/off)
+global_condition.order : 전체 서비스를 실행할때 고려할 요소 (ex, 거리순 / 시대순 / 사용자의 발화에 요청에 따른 순서 등등 )
+global_condition.robot_pose : 로봇 토픽으로 받아와야할 로봇의 실제 위치
+goal_generated : task_list의 모든 값이 null이 아님을 확인하는 값 (True/False)
+goal_verified : GoalVerificationAgent가 골 검증을 완료한것을 확인하는 값(True/False)
+
 
 Previous conversation history:
 {chat_history}
@@ -93,7 +78,7 @@ goal_json_prompt = PromptTemplate(
     input_variables=[],
     template=''
 )
-goal_json_prompt.input_variables = ['input', 'chat_history','intermediate_steps', 'agent_scratchpad']
+goal_json_prompt.input_variables = ['input', 'chat_history','intermediate_steps', 'agent_scratchpad',]
 goal_json_prompt.template = """
 넌 poi_list를 입력받아서 tool의 csv를 참조한 후 그에 맞는 goal.json의 value값들을 채워나가는 역할을 가지고 있어.
 goal.json은 로봇이 수행해야할 서비스를 정리해놓은 파일이야. 이 파일은 모두 rag에 저장된 csv를 참조해서 value값을 채워넣어야해. 절대로 허구의 자료를 생성하지마.

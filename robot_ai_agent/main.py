@@ -30,29 +30,51 @@ atexit.register(dbmanger.clear_redis_cache)
 # 대화 main loop
 START = False
 while True:
-    
+
     user_input = input("입력: ")
     if not START:
         # 현재 날짜와 시간을 세션 ID로 설정
         session_id = dbmanger.get_session_id()
         START = True
-
-    route_name = router.route(user_input)
-    print("Route: ", route_name)
-    current_agent = agents[route_name]
-    # 라우팅
-    if route_name == "robot_control": # 로봇 컨트롤
-        response = current_agent.route(user_input, session_id)
     
-    else: # 일반 대화
-        response = current_agent.respond(user_input,session_id)
+    # 모든 대화가 로봇 컨트롤임.
+    route_name = "robot_control"
+    current_agent = route_name
 
+    response = current_agent.route(user_input, session_id)
+    
     # agent_response = response['output']
     agent_response = response
     
     dbmanger.add_turn(session_id, user_input, agent_response, route_name)
+
+
+
+
+
+    ###############
+    # user_input = input("입력: ")
+    # if not START:
+    #     # 현재 날짜와 시간을 세션 ID로 설정
+    #     session_id = dbmanger.get_session_id()
+    #     START = True
+
+    # route_name = router.route(user_input)
+    # print("Route: ", route_name)
+    # current_agent = agents[route_name]
+    # # 라우팅
+    # if route_name == "robot_control": # 로봇 컨트롤
+    #     response = current_agent.route(user_input, session_id)
     
+    # else: # 일반 대화
+    #     response = current_agent.respond(user_input,session_id)
+
+    # # agent_response = response['output']
+    # agent_response = response
     
+    # dbmanger.add_turn(session_id, user_input, agent_response, route_name)
+    
+    #################
     # # 라우팅
     # if route_name == "robot_control": # 로봇 컨트롤
     #     # response = current_agent.route(user_input, session_id)

@@ -88,7 +88,9 @@ class BB_init(py_trees.behaviour.Behaviour):
         py_trees.blackboard.Blackboard.set('remote_unlock', False)
         py_trees.blackboard.Blackboard.set('finished_flag', False)
         py_trees.blackboard.Blackboard.set('pre_nav_status', None)
-
+        py_trees.blackboard.Blackboard.set('llm_bgm', '')
+        py_trees.blackboard.Blackboard.set('llm_led_color', '')
+        py_trees.blackboard.Blackboard.set('llm_led_effect', '')
 
     def update(self):
         return py_trees.common.Status.SUCCESS
@@ -534,7 +536,34 @@ class Reduce_1(py_trees.behaviour.Behaviour):
         py_trees.blackboard.Blackboard.set(self.BB_variable, self.bb_value)
                 
         return py_trees.common.Status.SUCCESS    
+
+class led_bgm(py_trees.behaviour.Behaviour):
+    def __init__(self, name: str = py_trees.common.Name.AUTO_GENERATED):
+        super().__init__(name=name)
         
+
+    def setup(self, **kwargs):
+        try:
+            self.node = kwargs['node']
+        except KeyError as e:
+            error_message = "didn't find 'node' in setup's kwargs [{}][{}]".format(
+                self.qualified_name)
+            raise KeyError(error_message) from e  # 'direct cause' traceability
+
+    def update(self):
+        self.control_value = py_trees.blackboard.Blackboard.get('current_service_id')
+        self.control_values = list(self.control_value)
+        
+        self.first_bgm = self.control_values[0]
+        self.second_led = self.control_values[1]
+        self.thirld_led = self.control_values[2]
+
+        py_trees.blackboard.Blackboard.set('llm_bgm', self.first_bgm)
+        py_trees.blackboard.Blackboard.set('llm_led_color', self.second_led)
+        py_trees.blackboard.Blackboard.set('llm_led_effect', self.thirld_led)
+                
+        return py_trees.common.Status.SUCCESS     
+
 def halt_reserve():
 
     seq = py_trees.composites.Sequence()
@@ -2609,6 +2638,1092 @@ def halt_cancel_seq():
 
     return par
 
+def llm_led_whole1():
+    
+    par_llm_led = py_trees.composites.Parallel(
+        name="par_llm_led",
+        policy=py_trees.common.ParallelPolicy.SuccessOnOne()
+    )
+    
+    seq_llm_led_colorful = py_trees.composites.Sequence()
+    seq_llm_led_calm = py_trees.composites.Sequence()
+    
+    llm_led_colorful_check = py_trees.behaviours.WaitForBlackboardVariableValue(
+            name= 'llm_led_colorful_check',
+            check=py_trees.common.ComparisonExpression(
+            variable="llm_led_effect",
+            value='1',
+            operator= operator.eq
+        )
+    )
+    
+    llm_led_calm_check = py_trees.behaviours.WaitForBlackboardVariableValue(
+            name= 'llm_led_calm_check',
+            check=py_trees.common.ComparisonExpression(
+            variable="llm_led_effect",
+            value='2',
+            operator= operator.eq
+        )
+    )
+    
+    par_llm_led_colorful = py_trees.composites.Parallel(
+        name="par_llm_led_colorful",
+        policy=py_trees.common.ParallelPolicy.SuccessOnOne()
+    )
+    
+    par_llm_led_calm = py_trees.composites.Parallel(
+        name="par_llm_led_colorful",
+        policy=py_trees.common.ParallelPolicy.SuccessOnOne()
+    )
+    
+    seq_llm_led_yellow1 = py_trees.composites.Sequence()
+    seq_llm_led_blue1 = py_trees.composites.Sequence()
+    seq_llm_led_green1 = py_trees.composites.Sequence()
+    seq_llm_led_general1 = py_trees.composites.Sequence()
+    seq_llm_led_orange1 = py_trees.composites.Sequence()
+    seq_llm_led_red1 = py_trees.composites.Sequence()
+    
+    seq_llm_led_yellow2 = py_trees.composites.Sequence()
+    seq_llm_led_blue2 = py_trees.composites.Sequence()
+    seq_llm_led_green2 = py_trees.composites.Sequence()
+    seq_llm_led_general2 = py_trees.composites.Sequence()
+    seq_llm_led_orange2 = py_trees.composites.Sequence()
+    seq_llm_led_red2 = py_trees.composites.Sequence()
+    
+    llm_led_yellow_check1 = py_trees.behaviours.WaitForBlackboardVariableValue(
+            name= 'llm_led_yellow_check1',
+            check=py_trees.common.ComparisonExpression(
+            variable="llm_led_effect",
+            value='1',
+            operator= operator.eq
+        )
+    )
+    
+    llm_led_blue_check1 = py_trees.behaviours.WaitForBlackboardVariableValue(
+            name= 'llm_led_blue_check1',
+            check=py_trees.common.ComparisonExpression(
+            variable="llm_led_effect",
+            value='2',
+            operator= operator.eq
+        )
+    )
+    
+    llm_led_green_check1 = py_trees.behaviours.WaitForBlackboardVariableValue(
+            name= 'llm_led_green_check1',
+            check=py_trees.common.ComparisonExpression(
+            variable="llm_led_effect",
+            value='3',
+            operator= operator.eq
+        )
+    )
+    
+    llm_led_general_check1 = py_trees.behaviours.WaitForBlackboardVariableValue(
+            name= 'llm_led_general_check1',
+            check=py_trees.common.ComparisonExpression(
+            variable="llm_led_effect",
+            value='4',
+            operator= operator.eq
+        )
+    )
+    
+    llm_led_orange_check1 = py_trees.behaviours.WaitForBlackboardVariableValue(
+            name= 'llm_led_orange_check1',
+            check=py_trees.common.ComparisonExpression(
+            variable="llm_led_effect",
+            value='5',
+            operator= operator.eq
+        )
+    )
+    
+    llm_led_red_check1 = py_trees.behaviours.WaitForBlackboardVariableValue(
+            name= 'llm_led_red_check1',
+            check=py_trees.common.ComparisonExpression(
+            variable="llm_led_effect",
+            value='6',
+            operator= operator.eq
+        )
+    )
+    
+    llm_led_yellow_check2 = py_trees.behaviours.WaitForBlackboardVariableValue(
+            name= 'llm_led_yellow_check2',
+            check=py_trees.common.ComparisonExpression(
+            variable="llm_led_effect",
+            value='1',
+            operator= operator.eq
+        )
+    )
+    
+    llm_led_blue_check2 = py_trees.behaviours.WaitForBlackboardVariableValue(
+            name= 'llm_led_blue_check2',
+            check=py_trees.common.ComparisonExpression(
+            variable="llm_led_effect",
+            value='2',
+            operator= operator.eq
+        )
+    )
+    
+    llm_led_green_check2 = py_trees.behaviours.WaitForBlackboardVariableValue(
+            name= 'llm_led_green_check2',
+            check=py_trees.common.ComparisonExpression(
+            variable="llm_led_effect",
+            value='3',
+            operator= operator.eq
+        )
+    )
+    
+    llm_led_general_check2 = py_trees.behaviours.WaitForBlackboardVariableValue(
+            name= 'llm_led_general_check2',
+            check=py_trees.common.ComparisonExpression(
+            variable="llm_led_effect",
+            value='4',
+            operator= operator.eq
+        )
+    )
+    
+    llm_led_orange_check2 = py_trees.behaviours.WaitForBlackboardVariableValue(
+            name= 'llm_led_orange_check2',
+            check=py_trees.common.ComparisonExpression(
+            variable="llm_led_effect",
+            value='5',
+            operator= operator.eq
+        )
+    )
+    
+    llm_led_red_check2 = py_trees.behaviours.WaitForBlackboardVariableValue(
+            name= 'llm_led_red_check2',
+            check=py_trees.common.ComparisonExpression(
+            variable="llm_led_effect",
+            value='6',
+            operator= operator.eq
+        )
+    )
+    
+    led_start_on_moving1_yellow1 = PublishTopic(
+                name='led_start_on_moving1_yellow1',
+                topic_name='led/set_led_effect_type',
+                topic_type = LEDEffect,
+                msg_generate_fn=lambda: LEDEffect(
+                    cmd_id=0,
+                    location=Location(position=1, x=1, y=1),
+                    color=LEDState(cmd_id=1,r=255, g=255, b=0),
+                    effect=4,
+                    period=1000,
+                    on_ms=0,
+                    repeat_count=0
+                    )   
+                )  
+    
+    led_start_on_moving2_yellow1 = PublishTopic(
+                name='led_start_on_moving2_yellow1',
+                topic_name='led/set_led_effect_type',
+                topic_type = LEDEffect,
+                msg_generate_fn=lambda: LEDEffect(
+                    cmd_id=0,
+                    location=Location(position=2, x=1, y=1),
+                    color=LEDState(cmd_id=1,r=255, g=255, b=0),
+                    effect=4,
+                    period=1000,
+                    on_ms=0,
+                    repeat_count=0
+                    )   
+                )
+    
+    led_start_on_moving1_yellow2 = PublishTopic(
+                name='led_start_on_moving1_yellow2',
+                topic_name='led/set_led_effect_type',
+                topic_type = LEDEffect,
+                msg_generate_fn=lambda: LEDEffect(
+                    cmd_id=0,
+                    location=Location(position=1, x=1, y=1),
+                    color=LEDState(cmd_id=1,r=255, g=255, b=0),
+                    effect=3,
+                    period=2000,
+                    on_ms=0,
+                    repeat_count=0
+                    )   
+                )  
+    
+    led_start_on_moving2_yellow2 = PublishTopic(
+                name='led_start_on_moving2_yellow2',
+                topic_name='led/set_led_effect_type',
+                topic_type = LEDEffect,
+                msg_generate_fn=lambda: LEDEffect(
+                    cmd_id=0,
+                    location=Location(position=2, x=1, y=1),
+                    color=LEDState(cmd_id=1,r=255, g=255, b=0),
+                    effect=3,
+                    period=2000,
+                    on_ms=0,
+                    repeat_count=0
+                    )   
+                )
+    
+    led_start_on_moving1_blue1 = PublishTopic(
+                name='led_start_on_moving1_blue1',
+                topic_name='led/set_led_effect_type',
+                topic_type = LEDEffect,
+                msg_generate_fn=lambda: LEDEffect(
+                    cmd_id=0,
+                    location=Location(position=1, x=1, y=1),
+                    color=LEDState(cmd_id=1,r=0, g=0, b=255),
+                    effect=4,
+                    period=1000,
+                    on_ms=0,
+                    repeat_count=0
+                    )   
+                )  
+    
+    led_start_on_moving2_blue1 = PublishTopic(
+                name='led_start_on_moving2_blue1',
+                topic_name='led/set_led_effect_type',
+                topic_type = LEDEffect,
+                msg_generate_fn=lambda: LEDEffect(
+                    cmd_id=0,
+                    location=Location(position=2, x=1, y=1),
+                    color=LEDState(cmd_id=1,r=0, g=0, b=255),
+                    effect=4,
+                    period=1000,
+                    on_ms=0,
+                    repeat_count=0
+                    )   
+                )
+    
+    led_start_on_moving1_blue2 = PublishTopic(
+                name='led_start_on_moving1_blue2',
+                topic_name='led/set_led_effect_type',
+                topic_type = LEDEffect,
+                msg_generate_fn=lambda: LEDEffect(
+                    cmd_id=0,
+                    location=Location(position=1, x=1, y=1),
+                    color=LEDState(cmd_id=1,r=0, g=0, b=255),
+                    effect=3,
+                    period=2000,
+                    on_ms=0,
+                    repeat_count=0
+                    )   
+                )  
+    
+    led_start_on_moving2_blue2 = PublishTopic(
+                name='led_start_on_moving2_blue2',
+                topic_name='led/set_led_effect_type',
+                topic_type = LEDEffect,
+                msg_generate_fn=lambda: LEDEffect(
+                    cmd_id=0,
+                    location=Location(position=2, x=1, y=1),
+                    color=LEDState(cmd_id=1,r=0, g=0, b=255),
+                    effect=3,
+                    period=2000,
+                    on_ms=0,
+                    repeat_count=0
+                    )   
+                )
+    
+    led_start_on_moving1_green1 = PublishTopic(
+                name='led_start_on_moving1_green1',
+                topic_name='led/set_led_effect_type',
+                topic_type = LEDEffect,
+                msg_generate_fn=lambda: LEDEffect(
+                    cmd_id=0,
+                    location=Location(position=1, x=1, y=1),
+                    color=LEDState(cmd_id=1,r=0, g=255, b=0),
+                    effect=4,
+                    period=1000,
+                    on_ms=0,
+                    repeat_count=0
+                    )   
+                )  
+    
+    led_start_on_moving2_green1 = PublishTopic(
+                name='led_start_on_moving2_green1',
+                topic_name='led/set_led_effect_type',
+                topic_type = LEDEffect,
+                msg_generate_fn=lambda: LEDEffect(
+                    cmd_id=0,
+                    location=Location(position=2, x=1, y=1),
+                    color=LEDState(cmd_id=1,r=0, g=255, b=0),
+                    effect=4,
+                    period=1000,
+                    on_ms=0,
+                    repeat_count=0
+                    )   
+                )
+    
+    led_start_on_moving1_green2 = PublishTopic(
+                name='led_start_on_moving1_green2',
+                topic_name='led/set_led_effect_type',
+                topic_type = LEDEffect,
+                msg_generate_fn=lambda: LEDEffect(
+                    cmd_id=0,
+                    location=Location(position=1, x=1, y=1),
+                    color=LEDState(cmd_id=1,r=0, g=255, b=0),
+                    effect=3,
+                    period=2000,
+                    on_ms=0,
+                    repeat_count=0
+                    )   
+                )  
+    
+    led_start_on_moving2_green2 = PublishTopic(
+                name='led_start_on_moving2_green2',
+                topic_name='led/set_led_effect_type',
+                topic_type = LEDEffect,
+                msg_generate_fn=lambda: LEDEffect(
+                    cmd_id=0,
+                    location=Location(position=2, x=1, y=1),
+                    color=LEDState(cmd_id=1,r=0, g=255, b=0),
+                    effect=3,
+                    period=2000,
+                    on_ms=0,
+                    repeat_count=0
+                    )   
+                )
+    
+    led_start_on_moving1_general1 = PublishTopic(
+                name='led_start_on_moving1_general1',
+                topic_name='led/set_led_effect_type',
+                topic_type = LEDEffect,
+                msg_generate_fn=lambda: LEDEffect(
+                    cmd_id=0,
+                    location=Location(position=1, x=1, y=1),
+                    color=LEDState(cmd_id=1,r=255, g=255, b=255),
+                    effect=4,
+                    period=1000,
+                    on_ms=0,
+                    repeat_count=0
+                    )   
+                )  
+    
+    led_start_on_moving2_general1 = PublishTopic(
+                name='led_start_on_moving2_general1',
+                topic_name='led/set_led_effect_type',
+                topic_type = LEDEffect,
+                msg_generate_fn=lambda: LEDEffect(
+                    cmd_id=0,
+                    location=Location(position=2, x=1, y=1),
+                    color=LEDState(cmd_id=1,r=255, g=255, b=255),
+                    effect=4,
+                    period=1000,
+                    on_ms=0,
+                    repeat_count=0
+                    )   
+                )
+    
+    led_start_on_moving1_general2 = PublishTopic(
+                name='led_start_on_moving1_general2',
+                topic_name='led/set_led_effect_type',
+                topic_type = LEDEffect,
+                msg_generate_fn=lambda: LEDEffect(
+                    cmd_id=0,
+                    location=Location(position=1, x=1, y=1),
+                    color=LEDState(cmd_id=1,r=255, g=255, b=255),
+                    effect=3,
+                    period=2000,
+                    on_ms=0,
+                    repeat_count=0
+                    )   
+                )  
+    
+    led_start_on_moving2_general2 = PublishTopic(
+                name='led_start_on_moving2_general2',
+                topic_name='led/set_led_effect_type',
+                topic_type = LEDEffect,
+                msg_generate_fn=lambda: LEDEffect(
+                    cmd_id=0,
+                    location=Location(position=2, x=1, y=1),
+                    color=LEDState(cmd_id=1,r=255, g=255, b=255),
+                    effect=3,
+                    period=2000,
+                    on_ms=0,
+                    repeat_count=0
+                    )   
+                )
+    
+    led_start_on_moving1_orange1 = PublishTopic(
+                name='led_start_on_moving1_orange1',
+                topic_name='led/set_led_effect_type',
+                topic_type = LEDEffect,
+                msg_generate_fn=lambda: LEDEffect(
+                    cmd_id=0,
+                    location=Location(position=1, x=1, y=1),
+                    color=LEDState(cmd_id=1,r=255, g=128, b=0),
+                    effect=4,
+                    period=1000,
+                    on_ms=0,
+                    repeat_count=0
+                    )   
+                )  
+    
+    led_start_on_moving2_orange1 = PublishTopic(
+                name='led_start_on_moving2_orange1',
+                topic_name='led/set_led_effect_type',
+                topic_type = LEDEffect,
+                msg_generate_fn=lambda: LEDEffect(
+                    cmd_id=0,
+                    location=Location(position=2, x=1, y=1),
+                    color=LEDState(cmd_id=1,r=255, g=128, b=0),
+                    effect=4,
+                    period=1000,
+                    on_ms=0,
+                    repeat_count=0
+                    )   
+                )
+    
+    led_start_on_moving1_orange2 = PublishTopic(
+                name='led_start_on_moving1_orange2',
+                topic_name='led/set_led_effect_type',
+                topic_type = LEDEffect,
+                msg_generate_fn=lambda: LEDEffect(
+                    cmd_id=0,
+                    location=Location(position=1, x=1, y=1),
+                    color=LEDState(cmd_id=1,r=255, g=128, b=0),
+                    effect=3,
+                    period=2000,
+                    on_ms=0,
+                    repeat_count=0
+                    )   
+                )  
+    
+    led_start_on_moving2_orange2 = PublishTopic(
+                name='led_start_on_moving2_orange2',
+                topic_name='led/set_led_effect_type',
+                topic_type = LEDEffect,
+                msg_generate_fn=lambda: LEDEffect(
+                    cmd_id=0,
+                    location=Location(position=2, x=1, y=1),
+                    color=LEDState(cmd_id=1,r=255, g=128, b=0),
+                    effect=3,
+                    period=2000,
+                    on_ms=0,
+                    repeat_count=0
+                    )   
+                )
+    
+    led_start_on_moving1_red1 = PublishTopic(
+                name='led_start_on_moving1_red1',
+                topic_name='led/set_led_effect_type',
+                topic_type = LEDEffect,
+                msg_generate_fn=lambda: LEDEffect(
+                    cmd_id=0,
+                    location=Location(position=1, x=1, y=1),
+                    color=LEDState(cmd_id=1,r=255, g=0, b=0),
+                    effect=4,
+                    period=1000,
+                    on_ms=0,
+                    repeat_count=0
+                    )   
+                )  
+    
+    led_start_on_moving2_red1 = PublishTopic(
+                name='led_start_on_moving2_red1',
+                topic_name='led/set_led_effect_type',
+                topic_type = LEDEffect,
+                msg_generate_fn=lambda: LEDEffect(
+                    cmd_id=0,
+                    location=Location(position=2, x=1, y=1),
+                    color=LEDState(cmd_id=1,r=255, g=0, b=0),
+                    effect=4,
+                    period=1000,
+                    on_ms=0,
+                    repeat_count=0
+                    )   
+                )
+    
+    led_start_on_moving1_red2 = PublishTopic(
+                name='led_start_on_moving1_red2',
+                topic_name='led/set_led_effect_type',
+                topic_type = LEDEffect,
+                msg_generate_fn=lambda: LEDEffect(
+                    cmd_id=0,
+                    location=Location(position=1, x=1, y=1),
+                    color=LEDState(cmd_id=1,r=255, g=0, b=0),
+                    effect=3,
+                    period=2000,
+                    on_ms=0,
+                    repeat_count=0
+                    )   
+                )  
+    
+    led_start_on_moving2_red2 = PublishTopic(
+                name='led_start_on_moving2_red2',
+                topic_name='led/set_led_effect_type',
+                topic_type = LEDEffect,
+                msg_generate_fn=lambda: LEDEffect(
+                    cmd_id=0,
+                    location=Location(position=2, x=1, y=1),
+                    color=LEDState(cmd_id=1,r=255, g=0, b=0),
+                    effect=3,
+                    period=2000,
+                    on_ms=0,
+                    repeat_count=0
+                    )   
+                )
+    
+    par_llm_led.add_children([seq_llm_led_colorful, seq_llm_led_calm])
+    seq_llm_led_colorful.add_children([llm_led_colorful_check, par_llm_led_colorful])
+    seq_llm_led_calm.add_children([llm_led_calm_check, par_llm_led_calm])
+    
+    par_llm_led_colorful.add_children([seq_llm_led_yellow1, seq_llm_led_blue1, seq_llm_led_green1, seq_llm_led_general1, seq_llm_led_orange1, seq_llm_led_red1])
+    par_llm_led_calm.add_children([seq_llm_led_yellow2, seq_llm_led_blue2, seq_llm_led_green2, seq_llm_led_general2, seq_llm_led_orange2, seq_llm_led_red2])
+    
+    seq_llm_led_yellow1.add_children([llm_led_yellow_check1, led_start_on_moving1_yellow1, led_start_on_moving2_yellow1])
+    seq_llm_led_blue1.add_children([llm_led_blue_check1, led_start_on_moving1_blue1, led_start_on_moving2_blue1])
+    seq_llm_led_green1.add_children([llm_led_green_check1, led_start_on_moving1_green1, led_start_on_moving2_green1])
+    seq_llm_led_general1.add_children([llm_led_general_check1, led_start_on_moving1_general1, led_start_on_moving2_general1])
+    seq_llm_led_orange1.add_children([llm_led_orange_check1, led_start_on_moving1_orange1, led_start_on_moving2_orange1])
+    seq_llm_led_red1.add_children([llm_led_red_check1, led_start_on_moving1_red1, led_start_on_moving2_red1])
+    
+    seq_llm_led_yellow2.add_children([llm_led_yellow_check2, led_start_on_moving1_yellow2, led_start_on_moving2_yellow2])
+    seq_llm_led_blue2.add_children([llm_led_blue_check2, led_start_on_moving1_blue2, led_start_on_moving2_blue2])
+    seq_llm_led_green2.add_children([llm_led_green_check2, led_start_on_moving1_green2, led_start_on_moving2_green2])
+    seq_llm_led_general2.add_children([llm_led_general_check2, led_start_on_moving1_general2, led_start_on_moving2_general2])
+    seq_llm_led_orange2.add_children([llm_led_orange_check2, led_start_on_moving1_orange2, led_start_on_moving2_orange2])
+    seq_llm_led_red2.add_children([llm_led_red_check2, led_start_on_moving1_red2, led_start_on_moving2_red2])
+    
+    return par_llm_led
+
+def llm_led_whole2():
+    
+    par_llm_led = py_trees.composites.Parallel(
+        name="par_llm_led",
+        policy=py_trees.common.ParallelPolicy.SuccessOnOne()
+    )
+    
+    seq_llm_led_colorful = py_trees.composites.Sequence()
+    seq_llm_led_calm = py_trees.composites.Sequence()
+    
+    llm_led_colorful_check = py_trees.behaviours.WaitForBlackboardVariableValue(
+            name= 'llm_led_colorful_check',
+            check=py_trees.common.ComparisonExpression(
+            variable="llm_led_effect",
+            value='1',
+            operator= operator.eq
+        )
+    )
+    
+    llm_led_calm_check = py_trees.behaviours.WaitForBlackboardVariableValue(
+            name= 'llm_led_calm_check',
+            check=py_trees.common.ComparisonExpression(
+            variable="llm_led_effect",
+            value='2',
+            operator= operator.eq
+        )
+    )
+    
+    par_llm_led_colorful = py_trees.composites.Parallel(
+        name="par_llm_led_colorful",
+        policy=py_trees.common.ParallelPolicy.SuccessOnOne()
+    )
+    
+    par_llm_led_calm = py_trees.composites.Parallel(
+        name="par_llm_led_colorful",
+        policy=py_trees.common.ParallelPolicy.SuccessOnOne()
+    )
+    
+    seq_llm_led_yellow1 = py_trees.composites.Sequence()
+    seq_llm_led_blue1 = py_trees.composites.Sequence()
+    seq_llm_led_green1 = py_trees.composites.Sequence()
+    seq_llm_led_general1 = py_trees.composites.Sequence()
+    seq_llm_led_orange1 = py_trees.composites.Sequence()
+    seq_llm_led_red1 = py_trees.composites.Sequence()
+    
+    seq_llm_led_yellow2 = py_trees.composites.Sequence()
+    seq_llm_led_blue2 = py_trees.composites.Sequence()
+    seq_llm_led_green2 = py_trees.composites.Sequence()
+    seq_llm_led_general2 = py_trees.composites.Sequence()
+    seq_llm_led_orange2 = py_trees.composites.Sequence()
+    seq_llm_led_red2 = py_trees.composites.Sequence()
+    
+    llm_led_yellow_check1 = py_trees.behaviours.WaitForBlackboardVariableValue(
+            name= 'llm_led_yellow_check1',
+            check=py_trees.common.ComparisonExpression(
+            variable="llm_led_effect",
+            value='1',
+            operator= operator.eq
+        )
+    )
+    
+    llm_led_blue_check1 = py_trees.behaviours.WaitForBlackboardVariableValue(
+            name= 'llm_led_blue_check1',
+            check=py_trees.common.ComparisonExpression(
+            variable="llm_led_effect",
+            value='2',
+            operator= operator.eq
+        )
+    )
+    
+    llm_led_green_check1 = py_trees.behaviours.WaitForBlackboardVariableValue(
+            name= 'llm_led_green_check1',
+            check=py_trees.common.ComparisonExpression(
+            variable="llm_led_effect",
+            value='3',
+            operator= operator.eq
+        )
+    )
+    
+    llm_led_general_check1 = py_trees.behaviours.WaitForBlackboardVariableValue(
+            name= 'llm_led_general_check1',
+            check=py_trees.common.ComparisonExpression(
+            variable="llm_led_effect",
+            value='4',
+            operator= operator.eq
+        )
+    )
+    
+    llm_led_orange_check1 = py_trees.behaviours.WaitForBlackboardVariableValue(
+            name= 'llm_led_orange_check1',
+            check=py_trees.common.ComparisonExpression(
+            variable="llm_led_effect",
+            value='5',
+            operator= operator.eq
+        )
+    )
+    
+    llm_led_red_check1 = py_trees.behaviours.WaitForBlackboardVariableValue(
+            name= 'llm_led_red_check1',
+            check=py_trees.common.ComparisonExpression(
+            variable="llm_led_effect",
+            value='6',
+            operator= operator.eq
+        )
+    )
+    
+    llm_led_yellow_check2 = py_trees.behaviours.WaitForBlackboardVariableValue(
+            name= 'llm_led_yellow_check2',
+            check=py_trees.common.ComparisonExpression(
+            variable="llm_led_effect",
+            value='1',
+            operator= operator.eq
+        )
+    )
+    
+    llm_led_blue_check2 = py_trees.behaviours.WaitForBlackboardVariableValue(
+            name= 'llm_led_blue_check2',
+            check=py_trees.common.ComparisonExpression(
+            variable="llm_led_effect",
+            value='2',
+            operator= operator.eq
+        )
+    )
+    
+    llm_led_green_check2 = py_trees.behaviours.WaitForBlackboardVariableValue(
+            name= 'llm_led_green_check2',
+            check=py_trees.common.ComparisonExpression(
+            variable="llm_led_effect",
+            value='3',
+            operator= operator.eq
+        )
+    )
+    
+    llm_led_general_check2 = py_trees.behaviours.WaitForBlackboardVariableValue(
+            name= 'llm_led_general_check2',
+            check=py_trees.common.ComparisonExpression(
+            variable="llm_led_effect",
+            value='4',
+            operator= operator.eq
+        )
+    )
+    
+    llm_led_orange_check2 = py_trees.behaviours.WaitForBlackboardVariableValue(
+            name= 'llm_led_orange_check2',
+            check=py_trees.common.ComparisonExpression(
+            variable="llm_led_effect",
+            value='5',
+            operator= operator.eq
+        )
+    )
+    
+    llm_led_red_check2 = py_trees.behaviours.WaitForBlackboardVariableValue(
+            name= 'llm_led_red_check2',
+            check=py_trees.common.ComparisonExpression(
+            variable="llm_led_effect",
+            value='6',
+            operator= operator.eq
+        )
+    )
+    
+    led_start_on_moving1_yellow1 = PublishTopic(
+                name='led_start_on_moving1_yellow1',
+                topic_name='led/set_led_effect_type',
+                topic_type = LEDEffect,
+                msg_generate_fn=lambda: LEDEffect(
+                    cmd_id=0,
+                    location=Location(position=1, x=1, y=1),
+                    color=LEDState(cmd_id=1,r=255, g=255, b=0),
+                    effect=4,
+                    period=1000,
+                    on_ms=0,
+                    repeat_count=0
+                    )   
+                )  
+    
+    led_start_on_moving2_yellow1 = PublishTopic(
+                name='led_start_on_moving2_yellow1',
+                topic_name='led/set_led_effect_type',
+                topic_type = LEDEffect,
+                msg_generate_fn=lambda: LEDEffect(
+                    cmd_id=0,
+                    location=Location(position=2, x=1, y=1),
+                    color=LEDState(cmd_id=1,r=255, g=255, b=0),
+                    effect=4,
+                    period=1000,
+                    on_ms=0,
+                    repeat_count=0
+                    )   
+                )
+    
+    led_start_on_moving1_yellow2 = PublishTopic(
+                name='led_start_on_moving1_yellow2',
+                topic_name='led/set_led_effect_type',
+                topic_type = LEDEffect,
+                msg_generate_fn=lambda: LEDEffect(
+                    cmd_id=0,
+                    location=Location(position=1, x=1, y=1),
+                    color=LEDState(cmd_id=1,r=255, g=255, b=0),
+                    effect=3,
+                    period=2000,
+                    on_ms=0,
+                    repeat_count=0
+                    )   
+                )  
+    
+    led_start_on_moving2_yellow2 = PublishTopic(
+                name='led_start_on_moving2_yellow2',
+                topic_name='led/set_led_effect_type',
+                topic_type = LEDEffect,
+                msg_generate_fn=lambda: LEDEffect(
+                    cmd_id=0,
+                    location=Location(position=2, x=1, y=1),
+                    color=LEDState(cmd_id=1,r=255, g=255, b=0),
+                    effect=3,
+                    period=2000,
+                    on_ms=0,
+                    repeat_count=0
+                    )   
+                )
+    
+    led_start_on_moving1_blue1 = PublishTopic(
+                name='led_start_on_moving1_blue1',
+                topic_name='led/set_led_effect_type',
+                topic_type = LEDEffect,
+                msg_generate_fn=lambda: LEDEffect(
+                    cmd_id=0,
+                    location=Location(position=1, x=1, y=1),
+                    color=LEDState(cmd_id=1,r=0, g=0, b=255),
+                    effect=4,
+                    period=1000,
+                    on_ms=0,
+                    repeat_count=0
+                    )   
+                )  
+    
+    led_start_on_moving2_blue1 = PublishTopic(
+                name='led_start_on_moving2_blue1',
+                topic_name='led/set_led_effect_type',
+                topic_type = LEDEffect,
+                msg_generate_fn=lambda: LEDEffect(
+                    cmd_id=0,
+                    location=Location(position=2, x=1, y=1),
+                    color=LEDState(cmd_id=1,r=0, g=0, b=255),
+                    effect=4,
+                    period=1000,
+                    on_ms=0,
+                    repeat_count=0
+                    )   
+                )
+    
+    led_start_on_moving1_blue2 = PublishTopic(
+                name='led_start_on_moving1_blue2',
+                topic_name='led/set_led_effect_type',
+                topic_type = LEDEffect,
+                msg_generate_fn=lambda: LEDEffect(
+                    cmd_id=0,
+                    location=Location(position=1, x=1, y=1),
+                    color=LEDState(cmd_id=1,r=0, g=0, b=255),
+                    effect=3,
+                    period=2000,
+                    on_ms=0,
+                    repeat_count=0
+                    )   
+                )  
+    
+    led_start_on_moving2_blue2 = PublishTopic(
+                name='led_start_on_moving2_blue2',
+                topic_name='led/set_led_effect_type',
+                topic_type = LEDEffect,
+                msg_generate_fn=lambda: LEDEffect(
+                    cmd_id=0,
+                    location=Location(position=2, x=1, y=1),
+                    color=LEDState(cmd_id=1,r=0, g=0, b=255),
+                    effect=3,
+                    period=2000,
+                    on_ms=0,
+                    repeat_count=0
+                    )   
+                )
+    
+    led_start_on_moving1_green1 = PublishTopic(
+                name='led_start_on_moving1_green1',
+                topic_name='led/set_led_effect_type',
+                topic_type = LEDEffect,
+                msg_generate_fn=lambda: LEDEffect(
+                    cmd_id=0,
+                    location=Location(position=1, x=1, y=1),
+                    color=LEDState(cmd_id=1,r=0, g=255, b=0),
+                    effect=4,
+                    period=1000,
+                    on_ms=0,
+                    repeat_count=0
+                    )   
+                )  
+    
+    led_start_on_moving2_green1 = PublishTopic(
+                name='led_start_on_moving2_green1',
+                topic_name='led/set_led_effect_type',
+                topic_type = LEDEffect,
+                msg_generate_fn=lambda: LEDEffect(
+                    cmd_id=0,
+                    location=Location(position=2, x=1, y=1),
+                    color=LEDState(cmd_id=1,r=0, g=255, b=0),
+                    effect=4,
+                    period=1000,
+                    on_ms=0,
+                    repeat_count=0
+                    )   
+                )
+    
+    led_start_on_moving1_green2 = PublishTopic(
+                name='led_start_on_moving1_green2',
+                topic_name='led/set_led_effect_type',
+                topic_type = LEDEffect,
+                msg_generate_fn=lambda: LEDEffect(
+                    cmd_id=0,
+                    location=Location(position=1, x=1, y=1),
+                    color=LEDState(cmd_id=1,r=0, g=255, b=0),
+                    effect=3,
+                    period=2000,
+                    on_ms=0,
+                    repeat_count=0
+                    )   
+                )  
+    
+    led_start_on_moving2_green2 = PublishTopic(
+                name='led_start_on_moving2_green2',
+                topic_name='led/set_led_effect_type',
+                topic_type = LEDEffect,
+                msg_generate_fn=lambda: LEDEffect(
+                    cmd_id=0,
+                    location=Location(position=2, x=1, y=1),
+                    color=LEDState(cmd_id=1,r=0, g=255, b=0),
+                    effect=3,
+                    period=2000,
+                    on_ms=0,
+                    repeat_count=0
+                    )   
+                )
+    
+    led_start_on_moving1_general1 = PublishTopic(
+                name='led_start_on_moving1_general1',
+                topic_name='led/set_led_effect_type',
+                topic_type = LEDEffect,
+                msg_generate_fn=lambda: LEDEffect(
+                    cmd_id=0,
+                    location=Location(position=1, x=1, y=1),
+                    color=LEDState(cmd_id=1,r=255, g=255, b=255),
+                    effect=4,
+                    period=1000,
+                    on_ms=0,
+                    repeat_count=0
+                    )   
+                )  
+    
+    led_start_on_moving2_general1 = PublishTopic(
+                name='led_start_on_moving2_general1',
+                topic_name='led/set_led_effect_type',
+                topic_type = LEDEffect,
+                msg_generate_fn=lambda: LEDEffect(
+                    cmd_id=0,
+                    location=Location(position=2, x=1, y=1),
+                    color=LEDState(cmd_id=1,r=255, g=255, b=255),
+                    effect=4,
+                    period=1000,
+                    on_ms=0,
+                    repeat_count=0
+                    )   
+                )
+    
+    led_start_on_moving1_general2 = PublishTopic(
+                name='led_start_on_moving1_general2',
+                topic_name='led/set_led_effect_type',
+                topic_type = LEDEffect,
+                msg_generate_fn=lambda: LEDEffect(
+                    cmd_id=0,
+                    location=Location(position=1, x=1, y=1),
+                    color=LEDState(cmd_id=1,r=255, g=255, b=255),
+                    effect=3,
+                    period=2000,
+                    on_ms=0,
+                    repeat_count=0
+                    )   
+                )  
+    
+    led_start_on_moving2_general2 = PublishTopic(
+                name='led_start_on_moving2_general2',
+                topic_name='led/set_led_effect_type',
+                topic_type = LEDEffect,
+                msg_generate_fn=lambda: LEDEffect(
+                    cmd_id=0,
+                    location=Location(position=2, x=1, y=1),
+                    color=LEDState(cmd_id=1,r=255, g=255, b=255),
+                    effect=3,
+                    period=2000,
+                    on_ms=0,
+                    repeat_count=0
+                    )   
+                )
+    
+    led_start_on_moving1_orange1 = PublishTopic(
+                name='led_start_on_moving1_orange1',
+                topic_name='led/set_led_effect_type',
+                topic_type = LEDEffect,
+                msg_generate_fn=lambda: LEDEffect(
+                    cmd_id=0,
+                    location=Location(position=1, x=1, y=1),
+                    color=LEDState(cmd_id=1,r=255, g=128, b=0),
+                    effect=4,
+                    period=1000,
+                    on_ms=0,
+                    repeat_count=0
+                    )   
+                )  
+    
+    led_start_on_moving2_orange1 = PublishTopic(
+                name='led_start_on_moving2_orange1',
+                topic_name='led/set_led_effect_type',
+                topic_type = LEDEffect,
+                msg_generate_fn=lambda: LEDEffect(
+                    cmd_id=0,
+                    location=Location(position=2, x=1, y=1),
+                    color=LEDState(cmd_id=1,r=255, g=128, b=0),
+                    effect=4,
+                    period=1000,
+                    on_ms=0,
+                    repeat_count=0
+                    )   
+                )
+    
+    led_start_on_moving1_orange2 = PublishTopic(
+                name='led_start_on_moving1_orange2',
+                topic_name='led/set_led_effect_type',
+                topic_type = LEDEffect,
+                msg_generate_fn=lambda: LEDEffect(
+                    cmd_id=0,
+                    location=Location(position=1, x=1, y=1),
+                    color=LEDState(cmd_id=1,r=255, g=128, b=0),
+                    effect=3,
+                    period=2000,
+                    on_ms=0,
+                    repeat_count=0
+                    )   
+                )  
+    
+    led_start_on_moving2_orange2 = PublishTopic(
+                name='led_start_on_moving2_orange2',
+                topic_name='led/set_led_effect_type',
+                topic_type = LEDEffect,
+                msg_generate_fn=lambda: LEDEffect(
+                    cmd_id=0,
+                    location=Location(position=2, x=1, y=1),
+                    color=LEDState(cmd_id=1,r=255, g=128, b=0),
+                    effect=3,
+                    period=2000,
+                    on_ms=0,
+                    repeat_count=0
+                    )   
+                )
+    
+    led_start_on_moving1_red1 = PublishTopic(
+                name='led_start_on_moving1_red1',
+                topic_name='led/set_led_effect_type',
+                topic_type = LEDEffect,
+                msg_generate_fn=lambda: LEDEffect(
+                    cmd_id=0,
+                    location=Location(position=1, x=1, y=1),
+                    color=LEDState(cmd_id=1,r=255, g=0, b=0),
+                    effect=4,
+                    period=1000,
+                    on_ms=0,
+                    repeat_count=0
+                    )   
+                )  
+    
+    led_start_on_moving2_red1 = PublishTopic(
+                name='led_start_on_moving2_red1',
+                topic_name='led/set_led_effect_type',
+                topic_type = LEDEffect,
+                msg_generate_fn=lambda: LEDEffect(
+                    cmd_id=0,
+                    location=Location(position=2, x=1, y=1),
+                    color=LEDState(cmd_id=1,r=255, g=0, b=0),
+                    effect=4,
+                    period=1000,
+                    on_ms=0,
+                    repeat_count=0
+                    )   
+                )
+    
+    led_start_on_moving1_red2 = PublishTopic(
+                name='led_start_on_moving1_red2',
+                topic_name='led/set_led_effect_type',
+                topic_type = LEDEffect,
+                msg_generate_fn=lambda: LEDEffect(
+                    cmd_id=0,
+                    location=Location(position=1, x=1, y=1),
+                    color=LEDState(cmd_id=1,r=255, g=0, b=0),
+                    effect=3,
+                    period=2000,
+                    on_ms=0,
+                    repeat_count=0
+                    )   
+                )  
+    
+    led_start_on_moving2_red2 = PublishTopic(
+                name='led_start_on_moving2_red2',
+                topic_name='led/set_led_effect_type',
+                topic_type = LEDEffect,
+                msg_generate_fn=lambda: LEDEffect(
+                    cmd_id=0,
+                    location=Location(position=2, x=1, y=1),
+                    color=LEDState(cmd_id=1,r=255, g=0, b=0),
+                    effect=3,
+                    period=2000,
+                    on_ms=0,
+                    repeat_count=0
+                    )   
+                )
+    
+    par_llm_led.add_children([seq_llm_led_colorful, seq_llm_led_calm])
+    seq_llm_led_colorful.add_children([llm_led_colorful_check, par_llm_led_colorful])
+    seq_llm_led_calm.add_children([llm_led_calm_check, par_llm_led_calm])
+    
+    par_llm_led_colorful.add_children([seq_llm_led_yellow1, seq_llm_led_blue1, seq_llm_led_green1, seq_llm_led_general1, seq_llm_led_orange1, seq_llm_led_red1])
+    par_llm_led_calm.add_children([seq_llm_led_yellow2, seq_llm_led_blue2, seq_llm_led_green2, seq_llm_led_general2, seq_llm_led_orange2, seq_llm_led_red2])
+    
+    seq_llm_led_yellow1.add_children([llm_led_yellow_check1, led_start_on_moving1_yellow1, led_start_on_moving2_yellow1])
+    seq_llm_led_blue1.add_children([llm_led_blue_check1, led_start_on_moving1_blue1, led_start_on_moving2_blue1])
+    seq_llm_led_green1.add_children([llm_led_green_check1, led_start_on_moving1_green1, led_start_on_moving2_green1])
+    seq_llm_led_general1.add_children([llm_led_general_check1, led_start_on_moving1_general1, led_start_on_moving2_general1])
+    seq_llm_led_orange1.add_children([llm_led_orange_check1, led_start_on_moving1_orange1, led_start_on_moving2_orange1])
+    seq_llm_led_red1.add_children([llm_led_red_check1, led_start_on_moving1_red1, led_start_on_moving2_red1])
+    
+    seq_llm_led_yellow2.add_children([llm_led_yellow_check2, led_start_on_moving1_yellow2, led_start_on_moving2_yellow2])
+    seq_llm_led_blue2.add_children([llm_led_blue_check2, led_start_on_moving1_blue2, led_start_on_moving2_blue2])
+    seq_llm_led_green2.add_children([llm_led_green_check2, led_start_on_moving1_green2, led_start_on_moving2_green2])
+    seq_llm_led_general2.add_children([llm_led_general_check2, led_start_on_moving1_general2, led_start_on_moving2_general2])
+    seq_llm_led_orange2.add_children([llm_led_orange_check2, led_start_on_moving1_orange2, led_start_on_moving2_orange2])
+    seq_llm_led_red2.add_children([llm_led_red_check2, led_start_on_moving1_red2, led_start_on_moving2_red2])
+    
+    return par_llm_led
+
 def while_moving_par():
 
 
@@ -3099,18 +4214,63 @@ def while_moving_par():
     reset_pre_nav_status1 = SetBlackBoard(BB_variable='pre_nav_status', BB_value=None)
     reset_pre_nav_status2 = SetBlackBoard(BB_variable='pre_nav_status', BB_value=None)
 
-    BGM_moving = BGMPlay(bgm_name= BGMPlay.BGM_MOVING, play=True, repeat=True)
+    par_llm_bgm = py_trees.composites.Parallel(
+        name="par_llm_bgm",
+        policy=py_trees.common.ParallelPolicy.SuccessOnOne()
+    )
+    
+    seq_bgm_moving = py_trees.composites.Sequence()
+    seq_bgm_new = py_trees.composites.Sequence()
+    seq_bgm_classic = py_trees.composites.Sequence()
+    
+    bgm_moving_check = py_trees.behaviours.WaitForBlackboardVariableValue(
+            name= 'bgm_moving_check',
+            check=py_trees.common.ComparisonExpression(
+            variable="llm_bgm",
+            value='1',
+            operator= operator.eq
+        )
+    )
+    
+    bgm_new_check = py_trees.behaviours.WaitForBlackboardVariableValue(
+            name= 'bgm_new_check',
+            check=py_trees.common.ComparisonExpression(
+            variable="llm_bgm",
+            value='2',
+            operator= operator.eq
+        )
+    )
+    
+    bgm_classic_check = py_trees.behaviours.WaitForBlackboardVariableValue(
+            name= 'bgm_classic_check',
+            check=py_trees.common.ComparisonExpression(
+            variable="llm_bgm",
+            value='3',
+            operator= operator.eq
+        )
+    )
+    
+    bgm_moving = BGMPlay(bgm_name= BGMPlay.BGM_MOVING, play=True, repeat=True)
+    bgm_new = BGMPlay(bgm_name= BGMPlay.BGM_EVENT, play=True, repeat=True)
+    bgm_classic = BGMPlay(bgm_name= BGMPlay.BGM_SURVEILLANCE_EVENT_ALARM, play=True, repeat=True)
+    
+    
     BGM_off_fleet = BGMPlay(bgm_name=BGMPlay.BGM_OFF, play=BGMPlay.STOP, repeat = False)
 
 
     par_moving_event.add_children([seq_collission, seq_blocked, seq_fleet_lineup, seq_recovery, seq_failed])
     seq_collission.add_children([collission_check, alarmplay_collision, collision_alarm, collision_key_reset])
     seq_blocked.add_children([blocked_check, tts_obstacle, blocked_alarm, blocked_pause_15])
-    seq_fleet_lineup.add_children([par_fleet_lineup_check, set_pre_fleet, tts_lineup_wating, BGM_off_fleet, led_start_on_lineup_front, led_start_on_lineup_rear, fleet_lineup_alarm,par_fleet_finished_check, BGM_moving, reset_pre_nav_status1,  led_start_on_moving_again1, led_start_on_moving_again2, fleet_lineup_alarm2])
+    seq_fleet_lineup.add_children([par_fleet_lineup_check, set_pre_fleet, tts_lineup_wating, BGM_off_fleet, led_start_on_lineup_front, led_start_on_lineup_rear, fleet_lineup_alarm,par_fleet_finished_check, par_llm_bgm, reset_pre_nav_status1, llm_led_whole1(), fleet_lineup_alarm2])
     par_fleet_lineup_check.add_children([fleet_lineup_check_state, fleet_lineup_check_req_id])
     par_fleet_finished_check.add_children([fleet_finished_check_state, fleet_finished_check_mode])
+    
+    par_llm_bgm.add_children([seq_bgm_moving, seq_bgm_new, seq_bgm_classic])
+    seq_bgm_moving.add_children([bgm_moving_check, bgm_moving])
+    seq_bgm_new.add_children([bgm_new_check, bgm_new])
+    seq_bgm_classic.add_children([bgm_classic_check, bgm_classic])
 
-    seq_recovery.add_children([recovery_check, set_pre_recovery, tts_obstacle_robot, led_start_on_recovery_front, led_start_on_recovery_rear, recovery_alarm, par_recovery_finished_check,reset_pre_nav_status2, led_start_on_moving_again3, led_start_on_moving_again4, recovery_alarm2])
+    seq_recovery.add_children([recovery_check, set_pre_recovery, tts_obstacle_robot, led_start_on_recovery_front, led_start_on_recovery_rear, recovery_alarm, par_recovery_finished_check,reset_pre_nav_status2, llm_led_whole2(), recovery_alarm2])
     par_recovery_finished_check.add_children([recovery_finished_check_state, recovery_finished_check_mode])
 
     seq_failed.add_children([fail_par, failed_alarm, NavigationCancel(), go_to_minor_error_tree])
@@ -3517,8 +4677,45 @@ def create_root():
             )
         )
 
-
-    BGM_moving = BGMPlay(bgm_name= BGMPlay.BGM_MOVING, play=True, repeat=True)
+    par_llm_bgm = py_trees.composites.Parallel(
+        name="par_llm_bgm",
+        policy=py_trees.common.ParallelPolicy.SuccessOnOne()
+    )
+    
+    seq_bgm_moving = py_trees.composites.Sequence()
+    seq_bgm_new = py_trees.composites.Sequence()
+    seq_bgm_classic = py_trees.composites.Sequence()
+    
+    bgm_moving_check = py_trees.behaviours.WaitForBlackboardVariableValue(
+            name= 'bgm_moving_check',
+            check=py_trees.common.ComparisonExpression(
+            variable="llm_bgm",
+            value='1',
+            operator= operator.eq
+        )
+    )
+    
+    bgm_new_check = py_trees.behaviours.WaitForBlackboardVariableValue(
+            name= 'bgm_new_check',
+            check=py_trees.common.ComparisonExpression(
+            variable="llm_bgm",
+            value='2',
+            operator= operator.eq
+        )
+    )
+    
+    bgm_classic_check = py_trees.behaviours.WaitForBlackboardVariableValue(
+            name= 'bgm_classic_check',
+            check=py_trees.common.ComparisonExpression(
+            variable="llm_bgm",
+            value='3',
+            operator= operator.eq
+        )
+    )
+    
+    bgm_moving = BGMPlay(bgm_name= BGMPlay.BGM_MOVING, play=True, repeat=True)
+    bgm_new = BGMPlay(bgm_name= BGMPlay.BGM_EVENT, play=True, repeat=True)
+    bgm_classic = BGMPlay(bgm_name= BGMPlay.BGM_SURVEILLANCE_EVENT_ALARM, play=True, repeat=True)
 
     def request_generate_fn_start_nav():
         req = SetNavGoal.Request()
@@ -4119,8 +5316,376 @@ def create_root():
     #     on_ms=0,
     #     repeat_count=0)
     
-    led_start_on_moving1 = PublishTopic(
-                name='led_start_on_moving1',
+    par_llm_led = py_trees.composites.Parallel(
+        name="par_llm_led",
+        policy=py_trees.common.ParallelPolicy.SuccessOnOne()
+    )
+    
+    seq_llm_led_colorful = py_trees.composites.Sequence()
+    seq_llm_led_calm = py_trees.composites.Sequence()
+    
+    llm_led_colorful_check = py_trees.behaviours.WaitForBlackboardVariableValue(
+            name= 'llm_led_colorful_check',
+            check=py_trees.common.ComparisonExpression(
+            variable="llm_led_effect",
+            value='1',
+            operator= operator.eq
+        )
+    )
+    
+    llm_led_calm_check = py_trees.behaviours.WaitForBlackboardVariableValue(
+            name= 'llm_led_calm_check',
+            check=py_trees.common.ComparisonExpression(
+            variable="llm_led_effect",
+            value='2',
+            operator= operator.eq
+        )
+    )
+    
+    par_llm_led_colorful = py_trees.composites.Parallel(
+        name="par_llm_led_colorful",
+        policy=py_trees.common.ParallelPolicy.SuccessOnOne()
+    )
+    
+    par_llm_led_calm = py_trees.composites.Parallel(
+        name="par_llm_led_colorful",
+        policy=py_trees.common.ParallelPolicy.SuccessOnOne()
+    )
+    
+    seq_llm_led_yellow1 = py_trees.composites.Sequence()
+    seq_llm_led_blue1 = py_trees.composites.Sequence()
+    seq_llm_led_green1 = py_trees.composites.Sequence()
+    seq_llm_led_general1 = py_trees.composites.Sequence()
+    seq_llm_led_orange1 = py_trees.composites.Sequence()
+    seq_llm_led_red1 = py_trees.composites.Sequence()
+    
+    seq_llm_led_yellow2 = py_trees.composites.Sequence()
+    seq_llm_led_blue2 = py_trees.composites.Sequence()
+    seq_llm_led_green2 = py_trees.composites.Sequence()
+    seq_llm_led_general2 = py_trees.composites.Sequence()
+    seq_llm_led_orange2 = py_trees.composites.Sequence()
+    seq_llm_led_red2 = py_trees.composites.Sequence()
+    
+    llm_led_yellow_check1 = py_trees.behaviours.WaitForBlackboardVariableValue(
+            name= 'llm_led_yellow_check1',
+            check=py_trees.common.ComparisonExpression(
+            variable="llm_led_effect",
+            value='1',
+            operator= operator.eq
+        )
+    )
+    
+    llm_led_blue_check1 = py_trees.behaviours.WaitForBlackboardVariableValue(
+            name= 'llm_led_blue_check1',
+            check=py_trees.common.ComparisonExpression(
+            variable="llm_led_effect",
+            value='2',
+            operator= operator.eq
+        )
+    )
+    
+    llm_led_green_check1 = py_trees.behaviours.WaitForBlackboardVariableValue(
+            name= 'llm_led_green_check1',
+            check=py_trees.common.ComparisonExpression(
+            variable="llm_led_effect",
+            value='3',
+            operator= operator.eq
+        )
+    )
+    
+    llm_led_general_check1 = py_trees.behaviours.WaitForBlackboardVariableValue(
+            name= 'llm_led_general_check1',
+            check=py_trees.common.ComparisonExpression(
+            variable="llm_led_effect",
+            value='4',
+            operator= operator.eq
+        )
+    )
+    
+    llm_led_orange_check1 = py_trees.behaviours.WaitForBlackboardVariableValue(
+            name= 'llm_led_orange_check1',
+            check=py_trees.common.ComparisonExpression(
+            variable="llm_led_effect",
+            value='5',
+            operator= operator.eq
+        )
+    )
+    
+    llm_led_red_check1 = py_trees.behaviours.WaitForBlackboardVariableValue(
+            name= 'llm_led_red_check1',
+            check=py_trees.common.ComparisonExpression(
+            variable="llm_led_effect",
+            value='6',
+            operator= operator.eq
+        )
+    )
+    
+    llm_led_yellow_check2 = py_trees.behaviours.WaitForBlackboardVariableValue(
+            name= 'llm_led_yellow_check2',
+            check=py_trees.common.ComparisonExpression(
+            variable="llm_led_effect",
+            value='1',
+            operator= operator.eq
+        )
+    )
+    
+    llm_led_blue_check2 = py_trees.behaviours.WaitForBlackboardVariableValue(
+            name= 'llm_led_blue_check2',
+            check=py_trees.common.ComparisonExpression(
+            variable="llm_led_effect",
+            value='2',
+            operator= operator.eq
+        )
+    )
+    
+    llm_led_green_check2 = py_trees.behaviours.WaitForBlackboardVariableValue(
+            name= 'llm_led_green_check2',
+            check=py_trees.common.ComparisonExpression(
+            variable="llm_led_effect",
+            value='3',
+            operator= operator.eq
+        )
+    )
+    
+    llm_led_general_check2 = py_trees.behaviours.WaitForBlackboardVariableValue(
+            name= 'llm_led_general_check2',
+            check=py_trees.common.ComparisonExpression(
+            variable="llm_led_effect",
+            value='4',
+            operator= operator.eq
+        )
+    )
+    
+    llm_led_orange_check2 = py_trees.behaviours.WaitForBlackboardVariableValue(
+            name= 'llm_led_orange_check2',
+            check=py_trees.common.ComparisonExpression(
+            variable="llm_led_effect",
+            value='5',
+            operator= operator.eq
+        )
+    )
+    
+    llm_led_red_check2 = py_trees.behaviours.WaitForBlackboardVariableValue(
+            name= 'llm_led_red_check2',
+            check=py_trees.common.ComparisonExpression(
+            variable="llm_led_effect",
+            value='6',
+            operator= operator.eq
+        )
+    )
+    
+    led_start_on_moving1_yellow1 = PublishTopic(
+                name='led_start_on_moving1_yellow1',
+                topic_name='led/set_led_effect_type',
+                topic_type = LEDEffect,
+                msg_generate_fn=lambda: LEDEffect(
+                    cmd_id=0,
+                    location=Location(position=1, x=1, y=1),
+                    color=LEDState(cmd_id=1,r=255, g=255, b=0),
+                    effect=4,
+                    period=1000,
+                    on_ms=0,
+                    repeat_count=0
+                    )   
+                )  
+    
+    led_start_on_moving2_yellow1 = PublishTopic(
+                name='led_start_on_moving2_yellow1',
+                topic_name='led/set_led_effect_type',
+                topic_type = LEDEffect,
+                msg_generate_fn=lambda: LEDEffect(
+                    cmd_id=0,
+                    location=Location(position=2, x=1, y=1),
+                    color=LEDState(cmd_id=1,r=255, g=255, b=0),
+                    effect=4,
+                    period=1000,
+                    on_ms=0,
+                    repeat_count=0
+                    )   
+                )
+    
+    led_start_on_moving1_yellow2 = PublishTopic(
+                name='led_start_on_moving1_yellow2',
+                topic_name='led/set_led_effect_type',
+                topic_type = LEDEffect,
+                msg_generate_fn=lambda: LEDEffect(
+                    cmd_id=0,
+                    location=Location(position=1, x=1, y=1),
+                    color=LEDState(cmd_id=1,r=255, g=255, b=0),
+                    effect=3,
+                    period=2000,
+                    on_ms=0,
+                    repeat_count=0
+                    )   
+                )  
+    
+    led_start_on_moving2_yellow2 = PublishTopic(
+                name='led_start_on_moving2_yellow2',
+                topic_name='led/set_led_effect_type',
+                topic_type = LEDEffect,
+                msg_generate_fn=lambda: LEDEffect(
+                    cmd_id=0,
+                    location=Location(position=2, x=1, y=1),
+                    color=LEDState(cmd_id=1,r=255, g=255, b=0),
+                    effect=3,
+                    period=2000,
+                    on_ms=0,
+                    repeat_count=0
+                    )   
+                )
+    
+    led_start_on_moving1_blue1 = PublishTopic(
+                name='led_start_on_moving1_blue1',
+                topic_name='led/set_led_effect_type',
+                topic_type = LEDEffect,
+                msg_generate_fn=lambda: LEDEffect(
+                    cmd_id=0,
+                    location=Location(position=1, x=1, y=1),
+                    color=LEDState(cmd_id=1,r=0, g=0, b=255),
+                    effect=4,
+                    period=1000,
+                    on_ms=0,
+                    repeat_count=0
+                    )   
+                )  
+    
+    led_start_on_moving2_blue1 = PublishTopic(
+                name='led_start_on_moving2_blue1',
+                topic_name='led/set_led_effect_type',
+                topic_type = LEDEffect,
+                msg_generate_fn=lambda: LEDEffect(
+                    cmd_id=0,
+                    location=Location(position=2, x=1, y=1),
+                    color=LEDState(cmd_id=1,r=0, g=0, b=255),
+                    effect=4,
+                    period=1000,
+                    on_ms=0,
+                    repeat_count=0
+                    )   
+                )
+    
+    led_start_on_moving1_blue2 = PublishTopic(
+                name='led_start_on_moving1_blue2',
+                topic_name='led/set_led_effect_type',
+                topic_type = LEDEffect,
+                msg_generate_fn=lambda: LEDEffect(
+                    cmd_id=0,
+                    location=Location(position=1, x=1, y=1),
+                    color=LEDState(cmd_id=1,r=0, g=0, b=255),
+                    effect=3,
+                    period=2000,
+                    on_ms=0,
+                    repeat_count=0
+                    )   
+                )  
+    
+    led_start_on_moving2_blue2 = PublishTopic(
+                name='led_start_on_moving2_blue2',
+                topic_name='led/set_led_effect_type',
+                topic_type = LEDEffect,
+                msg_generate_fn=lambda: LEDEffect(
+                    cmd_id=0,
+                    location=Location(position=2, x=1, y=1),
+                    color=LEDState(cmd_id=1,r=0, g=0, b=255),
+                    effect=3,
+                    period=2000,
+                    on_ms=0,
+                    repeat_count=0
+                    )   
+                )
+    
+    led_start_on_moving1_green1 = PublishTopic(
+                name='led_start_on_moving1_green1',
+                topic_name='led/set_led_effect_type',
+                topic_type = LEDEffect,
+                msg_generate_fn=lambda: LEDEffect(
+                    cmd_id=0,
+                    location=Location(position=1, x=1, y=1),
+                    color=LEDState(cmd_id=1,r=0, g=255, b=0),
+                    effect=4,
+                    period=1000,
+                    on_ms=0,
+                    repeat_count=0
+                    )   
+                )  
+    
+    led_start_on_moving2_green1 = PublishTopic(
+                name='led_start_on_moving2_green1',
+                topic_name='led/set_led_effect_type',
+                topic_type = LEDEffect,
+                msg_generate_fn=lambda: LEDEffect(
+                    cmd_id=0,
+                    location=Location(position=2, x=1, y=1),
+                    color=LEDState(cmd_id=1,r=0, g=255, b=0),
+                    effect=4,
+                    period=1000,
+                    on_ms=0,
+                    repeat_count=0
+                    )   
+                )
+    
+    led_start_on_moving1_green2 = PublishTopic(
+                name='led_start_on_moving1_green2',
+                topic_name='led/set_led_effect_type',
+                topic_type = LEDEffect,
+                msg_generate_fn=lambda: LEDEffect(
+                    cmd_id=0,
+                    location=Location(position=1, x=1, y=1),
+                    color=LEDState(cmd_id=1,r=0, g=255, b=0),
+                    effect=3,
+                    period=2000,
+                    on_ms=0,
+                    repeat_count=0
+                    )   
+                )  
+    
+    led_start_on_moving2_green2 = PublishTopic(
+                name='led_start_on_moving2_green2',
+                topic_name='led/set_led_effect_type',
+                topic_type = LEDEffect,
+                msg_generate_fn=lambda: LEDEffect(
+                    cmd_id=0,
+                    location=Location(position=2, x=1, y=1),
+                    color=LEDState(cmd_id=1,r=0, g=255, b=0),
+                    effect=3,
+                    period=2000,
+                    on_ms=0,
+                    repeat_count=0
+                    )   
+                )
+    
+    led_start_on_moving1_general1 = PublishTopic(
+                name='led_start_on_moving1_general1',
+                topic_name='led/set_led_effect_type',
+                topic_type = LEDEffect,
+                msg_generate_fn=lambda: LEDEffect(
+                    cmd_id=0,
+                    location=Location(position=1, x=1, y=1),
+                    color=LEDState(cmd_id=1,r=255, g=255, b=255),
+                    effect=4,
+                    period=1000,
+                    on_ms=0,
+                    repeat_count=0
+                    )   
+                )  
+    
+    led_start_on_moving2_general1 = PublishTopic(
+                name='led_start_on_moving2_general1',
+                topic_name='led/set_led_effect_type',
+                topic_type = LEDEffect,
+                msg_generate_fn=lambda: LEDEffect(
+                    cmd_id=0,
+                    location=Location(position=2, x=1, y=1),
+                    color=LEDState(cmd_id=1,r=255, g=255, b=255),
+                    effect=4,
+                    period=1000,
+                    on_ms=0,
+                    repeat_count=0
+                    )   
+                )
+    
+    led_start_on_moving1_general2 = PublishTopic(
+                name='led_start_on_moving1_general2',
                 topic_name='led/set_led_effect_type',
                 topic_type = LEDEffect,
                 msg_generate_fn=lambda: LEDEffect(
@@ -4134,8 +5699,8 @@ def create_root():
                     )   
                 )  
     
-    led_start_on_moving2 = PublishTopic(
-                name='led_start_on_moving2',
+    led_start_on_moving2_general2 = PublishTopic(
+                name='led_start_on_moving2_general2',
                 topic_name='led/set_led_effect_type',
                 topic_type = LEDEffect,
                 msg_generate_fn=lambda: LEDEffect(
@@ -4147,7 +5712,127 @@ def create_root():
                     on_ms=0,
                     repeat_count=0
                     )   
+                )
+    
+    led_start_on_moving1_orange1 = PublishTopic(
+                name='led_start_on_moving1_orange1',
+                topic_name='led/set_led_effect_type',
+                topic_type = LEDEffect,
+                msg_generate_fn=lambda: LEDEffect(
+                    cmd_id=0,
+                    location=Location(position=1, x=1, y=1),
+                    color=LEDState(cmd_id=1,r=255, g=128, b=0),
+                    effect=4,
+                    period=1000,
+                    on_ms=0,
+                    repeat_count=0
+                    )   
                 )  
+    
+    led_start_on_moving2_orange1 = PublishTopic(
+                name='led_start_on_moving2_orange1',
+                topic_name='led/set_led_effect_type',
+                topic_type = LEDEffect,
+                msg_generate_fn=lambda: LEDEffect(
+                    cmd_id=0,
+                    location=Location(position=2, x=1, y=1),
+                    color=LEDState(cmd_id=1,r=255, g=128, b=0),
+                    effect=4,
+                    period=1000,
+                    on_ms=0,
+                    repeat_count=0
+                    )   
+                )
+    
+    led_start_on_moving1_orange2 = PublishTopic(
+                name='led_start_on_moving1_orange2',
+                topic_name='led/set_led_effect_type',
+                topic_type = LEDEffect,
+                msg_generate_fn=lambda: LEDEffect(
+                    cmd_id=0,
+                    location=Location(position=1, x=1, y=1),
+                    color=LEDState(cmd_id=1,r=255, g=128, b=0),
+                    effect=3,
+                    period=2000,
+                    on_ms=0,
+                    repeat_count=0
+                    )   
+                )  
+    
+    led_start_on_moving2_orange2 = PublishTopic(
+                name='led_start_on_moving2_orange2',
+                topic_name='led/set_led_effect_type',
+                topic_type = LEDEffect,
+                msg_generate_fn=lambda: LEDEffect(
+                    cmd_id=0,
+                    location=Location(position=2, x=1, y=1),
+                    color=LEDState(cmd_id=1,r=255, g=128, b=0),
+                    effect=3,
+                    period=2000,
+                    on_ms=0,
+                    repeat_count=0
+                    )   
+                )
+    
+    led_start_on_moving1_red1 = PublishTopic(
+                name='led_start_on_moving1_red1',
+                topic_name='led/set_led_effect_type',
+                topic_type = LEDEffect,
+                msg_generate_fn=lambda: LEDEffect(
+                    cmd_id=0,
+                    location=Location(position=1, x=1, y=1),
+                    color=LEDState(cmd_id=1,r=255, g=0, b=0),
+                    effect=4,
+                    period=1000,
+                    on_ms=0,
+                    repeat_count=0
+                    )   
+                )  
+    
+    led_start_on_moving2_red1 = PublishTopic(
+                name='led_start_on_moving2_red1',
+                topic_name='led/set_led_effect_type',
+                topic_type = LEDEffect,
+                msg_generate_fn=lambda: LEDEffect(
+                    cmd_id=0,
+                    location=Location(position=2, x=1, y=1),
+                    color=LEDState(cmd_id=1,r=255, g=0, b=0),
+                    effect=4,
+                    period=1000,
+                    on_ms=0,
+                    repeat_count=0
+                    )   
+                )
+    
+    led_start_on_moving1_red2 = PublishTopic(
+                name='led_start_on_moving1_red2',
+                topic_name='led/set_led_effect_type',
+                topic_type = LEDEffect,
+                msg_generate_fn=lambda: LEDEffect(
+                    cmd_id=0,
+                    location=Location(position=1, x=1, y=1),
+                    color=LEDState(cmd_id=1,r=255, g=0, b=0),
+                    effect=3,
+                    period=2000,
+                    on_ms=0,
+                    repeat_count=0
+                    )   
+                )  
+    
+    led_start_on_moving2_red2 = PublishTopic(
+                name='led_start_on_moving2_red2',
+                topic_name='led/set_led_effect_type',
+                topic_type = LEDEffect,
+                msg_generate_fn=lambda: LEDEffect(
+                    cmd_id=0,
+                    location=Location(position=2, x=1, y=1),
+                    color=LEDState(cmd_id=1,r=255, g=0, b=0),
+                    effect=3,
+                    period=2000,
+                    on_ms=0,
+                    repeat_count=0
+                    )   
+                )
 
     # 일시정지 후 Resume 했을 때 다시 무빙
     # led_start_on_restart_f = LEDControl(
@@ -4577,8 +6262,34 @@ def create_root():
     
 
     #주행 시작
-    seq_main.add_children([start_alarm, BGM_moving,led_start_on_moving1, led_start_on_moving2, multirobot_available_t, start_nav, par_moving])
-
+    seq_main.add_children([start_alarm, par_llm_bgm, par_llm_led, multirobot_available_t, start_nav, par_moving])
+    
+    par_llm_bgm.add_children([seq_bgm_moving, seq_bgm_new, seq_bgm_classic])
+    seq_bgm_moving.add_children([bgm_moving_check, bgm_moving])
+    seq_bgm_new.add_children([bgm_new_check, bgm_new])
+    seq_bgm_classic.add_children([bgm_classic_check, bgm_classic])
+    
+    par_llm_led.add_children([seq_llm_led_colorful, seq_llm_led_calm])
+    seq_llm_led_colorful.add_children([llm_led_colorful_check, par_llm_led_colorful])
+    seq_llm_led_calm.add_children([llm_led_calm_check, par_llm_led_calm])
+    
+    par_llm_led_colorful.add_children([seq_llm_led_yellow1, seq_llm_led_blue1, seq_llm_led_green1, seq_llm_led_general1, seq_llm_led_orange1, seq_llm_led_red1])
+    par_llm_led_calm.add_children([seq_llm_led_yellow2, seq_llm_led_blue2, seq_llm_led_green2, seq_llm_led_general2, seq_llm_led_orange2, seq_llm_led_red2])
+    
+    seq_llm_led_yellow1.add_children([llm_led_yellow_check1, led_start_on_moving1_yellow1, led_start_on_moving2_yellow1])
+    seq_llm_led_blue1.add_children([llm_led_blue_check1, led_start_on_moving1_blue1, led_start_on_moving2_blue1])
+    seq_llm_led_green1.add_children([llm_led_green_check1, led_start_on_moving1_green1, led_start_on_moving2_green1])
+    seq_llm_led_general1.add_children([llm_led_general_check1, led_start_on_moving1_general1, led_start_on_moving2_general1])
+    seq_llm_led_orange1.add_children([llm_led_orange_check1, led_start_on_moving1_orange1, led_start_on_moving2_orange1])
+    seq_llm_led_red1.add_children([llm_led_red_check1, led_start_on_moving1_red1, led_start_on_moving2_red1])
+    
+    seq_llm_led_yellow2.add_children([llm_led_yellow_check2, led_start_on_moving1_yellow2, led_start_on_moving2_yellow2])
+    seq_llm_led_blue2.add_children([llm_led_blue_check2, led_start_on_moving1_blue2, led_start_on_moving2_blue2])
+    seq_llm_led_green2.add_children([llm_led_green_check2, led_start_on_moving1_green2, led_start_on_moving2_green2])
+    seq_llm_led_general2.add_children([llm_led_general_check2, led_start_on_moving1_general2, led_start_on_moving2_general2])
+    seq_llm_led_orange2.add_children([llm_led_orange_check2, led_start_on_moving1_orange2, led_start_on_moving2_orange2])
+    seq_llm_led_red2.add_children([llm_led_red_check2, led_start_on_moving1_red2, led_start_on_moving2_red2])
+    
     par_moving.add_children([while_moving_par(), seq_arrived])
 
     #도착 이후(이후 트레이 상태와 서비스를 고려하여 다음 서비스 결정)
