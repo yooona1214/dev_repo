@@ -17,7 +17,7 @@ import atexit
 from dotenv import load_dotenv
 
 from task_manager import *
-from modules.agents import *
+from modules.agents2 import *
 from modules.router import *
 from modules.db_manager import *
 
@@ -59,8 +59,8 @@ async def root():
     return {"message": "ROBOT SERVER IS OPENED"}
 
 # 1. 골 추론 요청
-@app.post("/action_request/{robot_id}")
-async def chat(robot_id: str,request: Request):
+@app.post("/action_request/")
+async def chat(request: Request):
     """post"""
 
     robotrequest = await request.json()
