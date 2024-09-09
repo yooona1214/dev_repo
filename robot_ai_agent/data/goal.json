@@ -5,8 +5,10 @@
         "task_num" : null, 
 		"task_list": [{ 
             "task_order": null,
-            "task_id": 103,
+            "service_code": 103,
             "POI" : null,
+            "artist": null,
+            "name": null,
 			"task_detail": {
                 "vel": null,
                 "BGM": null,
