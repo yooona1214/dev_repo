@@ -213,13 +213,10 @@ generate_poi_list_prompt.template = """
 
 [아웃풋]
 - 'poi_list'에는 작품 이름, BGM 타입, LED 색상, 그리고 LED 제어값을 포함한 POI 리스트를 작성해줘.
-- 각 POI는 다음과 같은 형식으로 구성해야 해:
-  {
-    "poi_name": <name>, 
-    "BGM": <bgm_type>, 
-    "LED_color": <color>, 
-    "LED_control": <control>
-  }
+- 각 POI는 다음과 같은 값이 들어간 리스트로 구성해야 해: 
+   'poi_list' = [["poi_name", "BGM",  "LED_color",  "LED_control"], ["poi_name2", "BGM2",  "LED_color2",  "LED_control2", ....]
+   
+- 이렇게만 나오면 돼,  나중에 이 값을 파싱해야하기 때문에 다른 부가적인 말은 생성하지마.
 - 생성한 POI 리스트는 로봇의 현재 위치를 기준으로 가까운 순서대로 정렬해야 해.
 - POI 리스트가 아직 확정되지 않았을 때는 빈 리스트로 반환해. 확정되면 최종 리스트를 반환해.
 
@@ -240,7 +237,7 @@ goal_done_check_prompt = PromptTemplate(
     template=''
 )
 
-goal_done_check_prompt.input_variables = ['input', 'poi_list', 'chat_history', 'agent_scratchpad']
+goal_done_check_prompt.input_variables = ['poi_list', 'chat_history', 'agent_scratchpad']
 goal_done_check_prompt.template = """
 [역할]
 - 너는 사용자가 선택한 POI 리스트가 완성되었는지 확인하는 역할이야.
@@ -249,6 +246,7 @@ goal_done_check_prompt.template = """
 
 [아웃풋]
 - 'goal_done'을 TRUE 또는 FALSE로 반환해야 해.
+- 형식은 딕셔너리 json 형태로 반환해. 예: 'goal_done' : True / False 
 
 [주의 사항]
 - POI 리스트와 대화 기록을 꼼꼼하게 확인하고, 목표가 완료되었는지 판단해.
@@ -260,7 +258,6 @@ Previous conversation history:
 POI List:
 {poi_list}
 
-New input: {input}
 {agent_scratchpad}
 """
 

@@ -230,6 +230,9 @@ class BB_init(py_trees.behaviour.Behaviour):
         py_trees.blackboard.Blackboard.set('halt_type', 0)
         py_trees.blackboard.Blackboard.set('halt_result', 0)
         py_trees.blackboard.Blackboard.set('beep_trigger', False)
+        
+        py_trees.blackboard.Blackboard.set('Tray_1_open_status', 1)
+        py_trees.blackboard.Blackboard.set('Tray_2_open_status', 1)
 
 
 

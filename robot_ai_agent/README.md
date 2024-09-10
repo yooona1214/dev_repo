@@ -3,7 +3,7 @@
 
 ## 실행방법 ##
 ## FastAPI로 로컬 서버 생성
-python -m uvicorn server_api:app --host 0.0.0.0 --port 8100 --reload --log-level debug
+python -m uvicorn server_api:app --host 0.0.0.0 --port 8000 --reload --log-level debug
 
 ## 클라이언트 파일(로봇입력)
 python server_api_client_test.py

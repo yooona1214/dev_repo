@@ -80,6 +80,9 @@ class BB_init(py_trees.behaviour.Behaviour):
         py_trees.blackboard.Blackboard.set('hri_tray_id', 0) #string
 
         py_trees.blackboard.Blackboard.set('qr_result', None)   
+        
+        py_trees.blackboard.Blackboard.set('Tray_1_open_status', 1)
+        py_trees.blackboard.Blackboard.set('Tray_2_open_status', 1)
 
 
     def update(self):

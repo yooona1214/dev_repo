@@ -99,6 +99,8 @@ class BB_init(py_trees.behaviour.Behaviour):
         #py_trees.blackboard.Blackboard.set('previous_tree', 'manualdriving_tree') 수동운전 트리에서는 previous tree set하면 안됨.
         py_trees.blackboard.Blackboard.set('Tray_1_exception_status', 9)
         py_trees.blackboard.Blackboard.set('Tray_2_exception_status', 9)
+        py_trees.blackboard.Blackboard.set('Tray_1_open_status', 1)
+        py_trees.blackboard.Blackboard.set('Tray_2_open_status', 1)
     def update(self):
         return py_trees.common.Status.SUCCESS
 

@@ -91,6 +91,8 @@ class BB_init(py_trees.behaviour.Behaviour):
         py_trees.blackboard.Blackboard.set('llm_bgm', '')
         py_trees.blackboard.Blackboard.set('llm_led_color', '')
         py_trees.blackboard.Blackboard.set('llm_led_effect', '')
+        py_trees.blackboard.Blackboard.set('Tray_1_open_status', 1)
+        py_trees.blackboard.Blackboard.set('Tray_2_open_status', 1)
 
     def update(self):
         return py_trees.common.Status.SUCCESS
