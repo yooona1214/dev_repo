@@ -50,7 +50,7 @@ llm_reply_question = llm_4_t
 llm_summary = llm_4_t
 
 # path
-csv_path2 = pkg_resources.files("robot_info").joinpath("gallery_artwork_des.csv")
+csv_path2 = pkg_resources.files("robot_info").joinpath("floor1_description.csv")
 
 
 
@@ -97,7 +97,7 @@ class GoalInferenceAgent:
         self.robot_id = None
         self.session_id = None
         self.goal_generated = None
-        self.current_agent = "goal_chat_agent" # 맨처음엔 goal_chat한테 가게 설정해야함
+        self.current_agent = "intense_agent" # 맨처음엔 goal_chat한테 가게 설정해야함
         self.ro_x = None
         self.ro_y = None
         self.goal_json = None
@@ -140,6 +140,14 @@ class GoalInferenceAgent:
         )
         self.goal_json_executor = AgentExecutor(
             agent=goal_json_agent, tools=tool_robot_info_for_json, verbose=True
+        )
+        
+        # Agent 0: 일반과 작품설명 분류 에이전트 정의
+        intense_agent = create_openai_functions_agent_with_history(
+            llm_goal_builder, tool_robot_info, intense_prompt
+        )
+        self.intense_executor = AgentExecutor(
+            agent=intense_agent, tools=tool_robot_info, verbose=True
         )
         
         # Agent 1: 채팅 에이전트 정의
@@ -254,6 +262,17 @@ class GoalInferenceAgent:
         
         return self.session_id
 
+    def intense_agent(self, user_input, session_id):
+        """채팅 에이전트 - 사용자 입력 처리"""
+        response = self.intense_executor.invoke({
+            "input": user_input,
+            "chat_history": self.chat_history
+        })
+
+        # 불필요한 ```json 제거 및 JSON 디코딩
+        intense = response["output"]
+        
+        return intense
     
     def respond_goal_chat_agent(self, user_input, session_id):
         """채팅 에이전트 - 사용자 입력 처리"""
@@ -375,6 +394,7 @@ class GoalInferenceAgent:
         self.ro_x = robot_x
         self.ro_y = robot_y
         
+        intense = 0
         goal_done = False  # 목표 완료 여부를 추적
         goal_generated = False  # goal_generated 플래그 추가
         
@@ -398,6 +418,17 @@ class GoalInferenceAgent:
                 return self.current_agent, respond_goal_chat
         '''
 
+        intense = self.intense_agent(user_input, session_id) #1:일반, 2:작품설명
+        if intense == 2:
+            respond_goal_chat = "작품 설명 완료"
+            self.db_manager.add_turn(self.robot_id, self.session_id, time_stamp, user_input, respond_goal_chat, self.current_agent)
+            print(f"의도1 : ", intense)
+            print(f"respond_goal_chat : ", respond_goal_chat)
+            return self.current_agent, respond_goal_chat, intense
+        else:
+            self.current_agent = "goal_chat_agent"
+            print(f"의도2 : ", intense)
+        
         while not goal_generated:
             # 1. 채팅 에이전트 실행
             if self.current_agent == "goal_chat_agent":
@@ -442,7 +473,8 @@ class GoalInferenceAgent:
                     # 채팅에이전트로 라우팅
                     self.current_agent = "goal_chat_agent"
                     print("GOAL DONE: FALSE")
-                    return self.current_agent , respond_goal_chat  # 서버로 채팅 응답 전송 후 루프 계속
+                    intense = 1
+                    return self.current_agent , respond_goal_chat, intense  # 서버로 채팅 응답 전송 후 루프 계속
             
             # 4. Summary 에이전트 실행 (목표 완료 후)
             if self.current_agent == "summary_agent":
@@ -457,7 +489,8 @@ class GoalInferenceAgent:
                 # goal_generated가 True면 루프 종료
                 respond_goal_chat = "안내를 시작하겠습니다."
                 print("Goal Generated! Exiting loop.")
-                return respond_goal_chat
+                intense = 3
+                return respond_goal_chat, intense
         
         # Step 2: goal이 완성 되면, Agent2 실행
         goal_json = self.respond_goal_json_agent(self.poi_list, session_id)
