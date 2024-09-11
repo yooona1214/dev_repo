@@ -5,7 +5,8 @@ def test_action_request():
 
 
     # FastAPI 서버의 엔드포인트 URL
-    url = "http://127.0.0.1:8000/action_request/robot_1/"  # 로컬에서 FastAPI 서버가 실행 중이어야 합니다.
+    
+    url = "http://73cc-14-52-91-70.ngrok-free.app/action_request/robot_1/"  # 로컬에서 FastAPI 서버가 실행 중이어야 합니다.
 
     while True:
         # user_input = input("대화 입력: ")
