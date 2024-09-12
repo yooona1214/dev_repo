@@ -3,9 +3,11 @@ import redis
 import os
 import shutil
 import importlib.resources as pkg_resources
+import ast
 from datetime import datetime
 from dotenv import load_dotenv
 from pathlib import Path
+
 
 from langchain_openai import ChatOpenAI
 from langchain_community.utilities import GoogleSerperAPIWrapper
@@ -50,7 +52,7 @@ llm_reply_question = llm_4_t
 llm_summary = llm_4_t
 
 # path
-csv_path2 = pkg_resources.files("robot_info").joinpath("floor1_description.csv")
+csv_path2 = pkg_resources.files("robot_info").joinpath("floor_description_240912.csv")
 
 
 
@@ -97,10 +99,12 @@ class GoalInferenceAgent:
         self.robot_id = None
         self.session_id = None
         self.goal_generated = None
-        self.current_agent = "intense_agent" # 맨처음엔 goal_chat한테 가게 설정해야함
+        self.current_agent = "intent_agent" # 맨처음엔 goal_chat한테 가게 설정해야함
         self.ro_x = None
         self.ro_y = None
         self.goal_json = None
+        self.summary_flag = False
+    
         
         # 체인버전
         self.goal_builder_chain = (
@@ -111,8 +115,8 @@ class GoalInferenceAgent:
         
         rag_robot_info2 = create_vector_store_as_retriever2(
             csv_path=csv_path2,
-            str1="KT_Docent_Robot_Gallery_Artwork_Information",
-            str2="This is a data containing poi, name, artist and description for the artworks.",
+            str1="KT_floor_Information_fot_Docent_Robot",
+            str2="This is a data containing space or artwork name, position and description for space and artworks.",
         )
         
         tool_robot_info2 = [rag_robot_info2]
@@ -143,11 +147,11 @@ class GoalInferenceAgent:
         )
         
         # Agent 0: 일반과 작품설명 분류 에이전트 정의
-        intense_agent = create_openai_functions_agent_with_history(
-            llm_goal_builder, tool_robot_info, intense_prompt
+        intent_agent = create_openai_functions_agent_with_history(
+            llm_goal_builder, tool_robot_info, intent_prompt
         )
-        self.intense_executor = AgentExecutor(
-            agent=intense_agent, tools=tool_robot_info, verbose=True
+        self.intent_executor = AgentExecutor(
+            agent=intent_agent, tools=tool_robot_info, verbose=True
         )
         
         # Agent 1: 채팅 에이전트 정의
@@ -172,6 +176,14 @@ class GoalInferenceAgent:
         )
         self.goal_done_check_executor = AgentExecutor(
             agent=goal_done_check_agent, tools=tool_robot_info, verbose=True
+        )
+        
+        # Agent 3: 목표 완료 확인 에이전트 정의
+        goal_validation_agent = create_openai_functions_agent_with_history(
+            llm_goal_builder, tool_robot_info, goal_validation_prompt
+        )
+        self.goal_validation_executor = AgentExecutor(
+            agent=goal_validation_agent, tools=tool_robot_info, verbose=True
         )
 
         # Agent 4: 요약 에이전트 정의
@@ -261,18 +273,32 @@ class GoalInferenceAgent:
             self.robot_id = robot_id
         
         return self.session_id
-
-    def intense_agent(self, user_input, session_id):
+    
+    def restart_service(self):
+        """세션 초기화"""
+        self.chat_history = []
+        self.poi_list = []
+        self.new_service = False
+        self.robot_id = None
+        self.session_id = None
+        self.goal_generated = None
+        self.current_agent = "intent_agent" 
+        self.ro_x = None
+        self.ro_y = None
+        self.goal_json = None
+        
+        
+    def intent_agent(self, user_input, session_id):
         """채팅 에이전트 - 사용자 입력 처리"""
-        response = self.intense_executor.invoke({
+        response = self.intent_executor.invoke({
             "input": user_input,
             "chat_history": self.chat_history
         })
 
         # 불필요한 ```json 제거 및 JSON 디코딩
-        intense = response["output"]
+        intent = response["output"]
         
-        return intense
+        return intent
     
     def respond_goal_chat_agent(self, user_input, session_id):
         """채팅 에이전트 - 사용자 입력 처리"""
@@ -283,20 +309,8 @@ class GoalInferenceAgent:
 
         # 불필요한 ```json 제거 및 JSON 디코딩
         respond_goal_chat = response["output"]
-        '''
-        output_data_cleaned = output_data.replace("```json", "").replace("```", "").strip()
+        print("###respond_goal_chat_agent: ", respond_goal_chat)
 
-        try:
-            parsed_output = json.loads(output_data_cleaned)
-            respond_goal_chat = parsed_output("respond_goal_chat")
-            print(f"**Respond Goal Chat:", respond_goal_chat)
-
-        except json.JSONDecodeError as e:
-            print(f"JSON 디코딩 오류1: {e}")
-            respond_goal_chat = "Chat response not available."
-
-        # 채팅 결과 반환
-        '''
         return respond_goal_chat
     
     def respond_generate_poi_list_agent(self, robot_x, robot_y, chat_history):
@@ -307,10 +321,10 @@ class GoalInferenceAgent:
             "chat_history": chat_history
         })
         
-        print("################################", response)
 
         # 불필요한 ```json 제거 및 JSON 디코딩
-        output_data_cleaned = response['output'].replace("```json", "").replace("```", "").strip()
+        output_data_cleaned = response['output']
+        print("###respond_generate_poi_list_agent: ", output_data_cleaned)
         
         poi_list = output_data_cleaned
 
@@ -318,40 +332,58 @@ class GoalInferenceAgent:
 
     def respond_goal_done_check_agent(self, poi_list, chat_history):
         """목표 완료 확인 에이전트"""
+        goal_done = False
         response = self.goal_done_check_executor.invoke({
             "poi_list": poi_list,
             "chat_history":chat_history
         })
-
+        output_data_cleaned = response['output']
+        print("^^^^^^^^^^^^^^^^^^^^^^^^^^^^: ", output_data_cleaned)
         output_data_cleaned = response['output'].replace("```json", "").replace("```", "").strip()
+        output_data_cleaned = json.loads(output_data_cleaned)
+        output_data_cleaned = output_data_cleaned["goal_done"]
+        
 
         try:
-            parsed_output = json.loads(output_data_cleaned)
-            goal_done = parsed_output['goal_done']
+            print("###respond_goal_done_check_agent: ", output_data_cleaned)
+            goal_done = output_data_cleaned
 
         except json.JSONDecodeError as e:
             print(f"JSON 디코딩 오류3: {e}")
-            goal_done = False
 
         return goal_done
-
-    def respond_summary_agent(self, poi_list):
-        """요약 에이전트 - 최종 요약 응답 생성"""
-        response = self.summary_executor.invoke({
+    
+    
+    def response_goal_validation_agent(self, poi_list, chat_history):
+        """목표 완료 확인 에이전트"""
+        response = self.goal_validation_executor.invoke({
             "poi_list": poi_list,
-            "chat_history": self.chat_history
+            "chat_history":chat_history
+            
         })
 
         output_data_cleaned = response['output'].replace("```json", "").replace("```", "").strip()
+        print("###response_goal_validation_agent: ", output_data_cleaned)
+        poi_list = output_data_cleaned
+
+        return poi_list
+
+    def respond_summary_agent(self,user_input, poi_list, chat_history):
+        """요약 에이전트 - 최종 요약 응답 생성"""
+        goal_generated = False
+        response = self.summary_executor.invoke({
+            "input": user_input,
+            "poi_list": poi_list,
+            "chat_history": chat_history
+        })
+        
+        output_data_cleaned = ast.literal_eval(response["output"])
+        print("###respond_summary_agent: ", output_data_cleaned)
+
 
         try:
-            parsed_output = json.loads(output_data_cleaned)
-            respond_goal_chat = parsed_output.get("respond_goal_chat", "")
-            goal_generated = parsed_output["goal_generated"]
-
-            # 값 출력
-            print("***Goal Generated:", goal_generated)
-            print(f"Summary Output: {respond_goal_chat}")
+            respond_goal_chat = output_data_cleaned[0][1]
+            goal_generated = output_data_cleaned[1][1]
 
         except json.JSONDecodeError as e:
             print(f"JSON 디코딩 오류4: {e}")
@@ -383,10 +415,24 @@ class GoalInferenceAgent:
         
         return 
     
+    
     def get_poi_list(self):
-        return self.poi_list
+        ### 여기서 바꿔주자
+        self.poi_list = ast.literal_eval(self.poi_list)
+        goal_json_poi_list = self.poi_list
+        only_poi_list = [sublist[0] for sublist in list(self.poi_list)]
+        print(goal_json_poi_list, only_poi_list)
+        return goal_json_poi_list, only_poi_list
         
     def route(self, user_input, robot_x, robot_y, session_id):
+        print("****************************************************")
+        print("****************************************************")
+        
+        if user_input == "!다시":
+            self.restart_service()
+            return "!다시", '인스턴스 초기화', '00000'
+
+        
         # 챗 히스토리 로드
         self.chat_history = self.db_manager.get_conversation_history(self.robot_id, session_id)  
 
@@ -394,112 +440,129 @@ class GoalInferenceAgent:
         self.ro_x = robot_x
         self.ro_y = robot_y
         
-        intense = 0
+        # 라우팅값 초기화
+        intent = 0
         goal_done = False  # 목표 완료 여부를 추적
-        goal_generated = False  # goal_generated 플래그 추가
+        self.goal_generated_flag = False
         
-        # 특정 조건에 따라 하위 에이전트 선택 및 실행
-        # Agent1. goal_chat_agent = input: 사용자 발화 / output: csv파일을 참조해서 가야할 목적지 list + 이 list가 맞는지 대답생성
-        # Agent2. goal_json_agent = input: Agent1의 out인 list / output: goal.json
-        # Agent3. goal_verify_agent = input: 챗 히스토리 / output: 알겠습니다 대답생성 or 다시 서비스를 생성하겠습니다 후 Agent1 라우팅 
-        # Agent4
-        # Agent5
-        # Agent6
-        # self.goal_json 
-        
-        # Agent1 실행
-        '''
-        if self.current_agent == "goal_chat_agent":
-            # Step 1: Agent1 실행 - 사용자 대화 처리 및 POI 리스트 생성
-            poi_list, respond_goal_chat, goal_generated = self.respond_goal_chat_agent(user_input, self.ro_x, self.ro_y, session_id)
-            self.poi_list = poi_list  # 다음 에이전트 호출 시 사용하기 위해 저장     
+        while self.current_agent != "summary_agent":
+            # Agent1: 의도파악 에이전트 실행
+            intent = self.intent_agent(user_input, session_id) #1:일반, 2:작품설명
+            if intent == str(2):
+                """작품설명이어서 로봇으로 바로 값 전송"""
+                respond_goal_chat = "작품 설명 완료"
+                
+                time_stamp = str(datetime.now())
+                self.db_manager.add_turn(self.robot_id, self.session_id, time_stamp, user_input, respond_goal_chat, self.current_agent)
+                
+                print(f"의도2(미들웨어) : ", intent)
+                print(f"respond_goal_chat : ", respond_goal_chat)
+                return self.current_agent, respond_goal_chat, intent
+            else:
+                """골 추론 에이전트 돌릴 경우"""
+                self.current_agent = "goal_chat_agent"
+                print(f"의도1(우리) : ", intent)
             
-            if not goal_generated: # goal이 아직 완성되지 않거나, 일반 대화 대답일 때 
-                return self.current_agent, respond_goal_chat
-        '''
 
-        intense = self.intense_agent(user_input, session_id) #1:일반, 2:작품설명
-        if intense == 2:
-            respond_goal_chat = "작품 설명 완료"
-            self.db_manager.add_turn(self.robot_id, self.session_id, time_stamp, user_input, respond_goal_chat, self.current_agent)
-            print(f"의도1 : ", intense)
-            print(f"respond_goal_chat : ", respond_goal_chat)
-            return self.current_agent, respond_goal_chat, intense
-        else:
-            self.current_agent = "goal_chat_agent"
-            print(f"의도2 : ", intense)
-        
-        while not goal_generated:
             # 1. 채팅 에이전트 실행
             if self.current_agent == "goal_chat_agent":
                 respond_goal_chat = self.respond_goal_chat_agent(user_input, session_id)
-
                 # 챗 히스토리 저장
                 time_stamp = str(datetime.now())
                 self.db_manager.add_turn(self.robot_id, self.session_id,time_stamp, user_input, respond_goal_chat, self.current_agent)
                 
+                print("111111111111111111111111111111111111111111111111111111111111111111111")
                 # 채팅 응답을 반환하고 다음 에이전트로 넘어감
                 self.current_agent = "generate_poi_list_agent"
             
             # 2. POI 리스트 생성 에이전트 실행
             if self.current_agent == "generate_poi_list_agent":
                 
-                # 챗 히스토리 다시 로드
+                # 채팅 에이전트가 남긴 챗 히스토리 다시 로드
                 self.chat_history = self.db_manager.get_conversation_history(self.robot_id, session_id)  
                 self.poi_list = self.respond_generate_poi_list_agent(self.ro_x, self.ro_y, self.chat_history)
-                print(f"POI List: {self.poi_list}")
-
+                print("22222222222222222222222222222222222222222222222222222222222222222222222")
                 # 목표 완료 확인 에이전트로 넘어감
                 self.current_agent = "goal_done_check_agent"
 
             # 3. 목표 완료 확인 에이전트 실행
             if self.current_agent == "goal_done_check_agent":
-                # 챗 히스토리 다시 로드
+                # poi 리스트 생성 에이전트가 남긴 챗 히스토리 다시 로드
                 self.chat_history = self.db_manager.get_conversation_history(self.robot_id, session_id)  
                 goal_done = self.respond_goal_done_check_agent(self.poi_list, self.chat_history)
-                print("========================================")
+
+                print("33333333333333333333333333333333333333333333333333333333333")
+ 
+                
 
                 if goal_done:
                     # 목표가 완료되었으면 Summary 에이전트로 이동
+                    self.chat_history = self.db_manager.get_conversation_history(self.robot_id, session_id)  
+                    self.poi_list = self.response_goal_validation_agent(self.poi_list, self.chat_history)                    
                     self.current_agent = "summary_agent"
                     print("GOAL DONE: TRUE")
+                    print("44444444444444444444444444444444444444444444444444444444444444444444")
                     
                 else:
                     # 목표가 완료되지 않았으면 해당 기록 저장하고 다시 채팅 에이전트로 돌아감
                     # 에이전트 응답 결과 저장
                     time_stamp = str(datetime.now())
                     self.db_manager.add_turn(self.robot_id, self.session_id,time_stamp, user_input, goal_done, self.current_agent)
+                    print("55555555555555555555555555555555555555555555555555555555555555")
                     
                     # 채팅에이전트로 라우팅
                     self.current_agent = "goal_chat_agent"
                     print("GOAL DONE: FALSE")
-                    intense = 1
-                    return self.current_agent , respond_goal_chat, intense  # 서버로 채팅 응답 전송 후 루프 계속
-            
-            # 4. Summary 에이전트 실행 (목표 완료 후)
-            if self.current_agent == "summary_agent":
-                respond_goal_chat, goal_generated = self.respond_summary_agent(self.poi_list)
-                print(f"Summary Output: {respond_goal_chat}")
+                    intent = 1
+                    return self.current_agent , respond_goal_chat, intent  # 서버로 채팅 응답 전송 후 루프 계속
 
-                if not goal_generated:
-                    # 목표가 완성되지 않았으면 다시 채팅 에이전트로 돌아감
-                    self.current_agent = "goal_chat_agent"
-                    return respond_goal_chat  # 루프 계속 진행
+        # 4. Summary 에이전트 실행 (목표 완료 후)
+        if self.current_agent == "summary_agent":
+            self.chat_history = self.db_manager.get_conversation_history(self.robot_id, session_id)
+
+            # 1단계: Summary 에이전트 실행 후 요약 질문 반환
+            respond_goal_chat, goal_generated = self.respond_summary_agent(user_input, self.poi_list, self.chat_history)
+            print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+
+            
+            if not self.summary_flag: # False 처음 서머리 에이전트가 탈 경우
+                # 첫 번째 단계에서는 goal_generated를 아직 체크하지 않고 요약 질문을 사용자에게 보냄 (None)
+                self.current_agent = "summary_agent"
+                self.summary_flag = True
+                print("@@@@@@@@@@@@써머리처음")
                 
-                # goal_generated가 True면 루프 종료
-                respond_goal_chat = "안내를 시작하겠습니다."
-                print("Goal Generated! Exiting loop.")
-                intense = 3
-                return respond_goal_chat, intense
-        
-        # Step 2: goal이 완성 되면, Agent2 실행
-        goal_json = self.respond_goal_json_agent(self.poi_list, session_id)
-            
-        # Step 3: Agent3 실행 - 최종 서비스 실행 여부 질문
-        final_response = self.respond_goal_verify_agent(goal_json)
-        self.current_agent = "goal_verify_agent"
-            
-        return self.current_agent, final_response
+                #db저장
+                time_stamp = str(datetime.now())
+                self.db_manager.add_turn(self.robot_id, self.session_id,time_stamp, user_input, goal_done, self.current_agent)
+                return self.current_agent, respond_goal_chat, intent
+
+            else:
+                if goal_generated == False:
+                # goal_generated가 False면 다시 대화 에이전트로 돌아감
+                    respond_goal_chat = "기존 계획을 초기화 하겠습니다. 안내받고 싶은신 장소를 다시 처음부터 말씀해주세요."
+                    print("~~~~~~~~~~~~~~~써머리두번째 부정적 답변받은 상황")
+
+                    self.current_agent = "goal_chat_agent"
+                    self.summary_flag = False
+                    #db저장
+                    time_stamp = str(datetime.now())
+                    self.db_manager.add_turn(self.robot_id, self.session_id,time_stamp, user_input, goal_done, self.current_agent)
+                    self.restart_service()
+                    return self.current_agent, respond_goal_chat, intent  # intent = 1: 다시 채팅으로 돌아감
+
+
+                else: # True
+                    # goal_generated가 True면 안내를 시작하는 응답 반환
+                    respond_goal_chat = "안내를 시작하겠습니다."
+                    print("===============써머리두번째 긍정적 답변받은 상황")
+                    self.current_agent = "END"
+                    self.summary_flag = False
+                    intent = 3
+                    #db저장
+                    time_stamp = str(datetime.now())
+                    self.db_manager.add_turn(self.robot_id, self.session_id,time_stamp, user_input, goal_done, self.current_agent)
+                    return self.current_agent, respond_goal_chat, intent  # intent = 3: 안내 시작
+
 
 
 
