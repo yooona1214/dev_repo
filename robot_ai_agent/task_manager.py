@@ -19,7 +19,7 @@ import json
 import os
 from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor
-
+import pandas as pd
 
 
 class TaskManager:
@@ -34,6 +34,8 @@ class TaskManager:
         self.robot_id = robot_id
         self.poi_state_dict = {}  # POI별 상태 관리 딕셔너리
         self.current_service_start = None  # 현재 시작할 서비스 정보
+        self.current_goal_json = {}
+        
     @classmethod
     def get_instance(cls, robot_id):
         """
@@ -46,17 +48,6 @@ class TaskManager:
             cls._instances[robot_id] = TaskManager(robot_id)
         return cls._instances[robot_id]
         
-    def initialize_poi_state_dict(self, goal_json):
-        """
-        goal.json 데이터를 기반으로 poi_state_dict를 생성합니다.
-        각 POI의 상태는 'not_done'으로 초기화됩니다.
-        
-        :param goal_json: goal.json 형식의 딕셔너리 데이터
-        :return: POI 상태를 나타내는 poi_state_dict 딕셔너리
-        """
-        # POI 상태 딕셔너리 초기화
-        self.poi_state_dict = {poi_name: 'not_done' for poi_name in goal_json.keys()}
-        return self.poi_state_dict
     
 
     def generate_goal_json(self, poi_arg_list):
@@ -65,9 +56,21 @@ class TaskManager:
         :param poi_arg_list: 각 POI 이름과 해당 설정값을 포함하는 리스트, 형식: [[poi_name, service_id], ...]
         :return: goal.json 형식의 딕셔너리
         """
+        csv_file_path = './robot_info/floor_description.csv'
+        df = pd.read_csv(csv_file_path)
+        
+        
         goal_json = {}
-
-        for poi_name, poi_arg1, poi_arg2, poi_arg3 in poi_arg_list:
+        for poi_sublist in poi_arg_list:
+            print(poi_sublist)
+            poi_name, poi_arg1, poi_arg2, poi_arg3 = poi_sublist
+            
+            # csv에서 실제 poi 가져오기
+            key_to_find = poi_name
+            matching_row = df[df['Name'] == key_to_find]
+            id_value = matching_row.iloc[0]['ID']
+            
+            # led bgm effect
             poi_arg = poi_arg1 + poi_arg2 + poi_arg3
             
             # 각 POI를 키로 하고, 해당 POI에 대한 설정값을 포함하는 딕셔너리를 생성
@@ -80,13 +83,13 @@ class TaskManager:
                         "task_id": 1,  # speed scale 인데 어떻게?
                         "tray_id": 1,  # 트레이 위치 tray_id는 기본적으로 1로 설정
                         "map_id": 0,  # map_id 어떻게?
-                        "goal_id": poi_name,  # goal_id는 현재 POI 이름으로 설정
+                        "goal_id": id_value,  # goal_id는 현재 POI 이름으로 설정
                         "seq": 1,  # seq는 기본적으로 1로 설정
                         "lock_option": 1  # lock_option은 기본적으로 1로 설정
                     }
                 ]
             }
-            
+                
         # 현재 시간 기반 파일명 생성
         current_time_str = datetime.now().strftime("%Y%m%d%H%M%S")
         file_name = f"goal_{current_time_str}.json"
@@ -102,19 +105,42 @@ class TaskManager:
         print(f"JSON 데이터가 '{file_path}' 파일로 저장되었습니다.")  
 
         return goal_json
+    
+    def initialize_poi_state_dict(self, goal_json):
+        """
+        goal.json 데이터를 기반으로 poi_state_dict를 생성합니다.
+        각 POI의 상태는 'not_done'으로 초기화됩니다.
+        
+        :param goal_json: goal.json 형식의 딕셔너리 데이터
+        :return: POI 상태를 나타내는 poi_state_dict 딕셔너리
+        """
+        self.current_goal_json = goal_json
+        
+        # POI 상태 딕셔너리 초기화
+        self.poi_state_dict = {poi_name: 'not_done' for poi_name in goal_json.keys()}
+        print("\n\n\n\n")
+        print("*******************************")
+        print("TASK MANAGER POI STATE is INITIALIZED: \n", self.poi_state_dict)
+        print("*******************************")
+        print("\n\n\n\n")
+        
+        
+    def find_current_poi(self):
+        # state_dict 에서 값이 not_done인 제일 첫번째 key 뽑기
+        for key, value in self.poi_state_dict.items():
+            if value == 'not_done':
+                return key
+        return None  
 
-
-
-    def send_current_service_start(self, current_service_start):
+        
+        
+    def load_current_service_start(self, current_poi):
         """로봇 -> 서버 : current_service_start 전송 후 성공 여부 반환"""
-        url = f"{self.server_url}/send_current_service_start"
-        response = requests.post(url, json=current_service_start)
-        if response.status_code == 200:
-            print("Current Service Start 전송 성공:", current_service_start)
-            return True
-        else:
-            print("Current Service Start 전송 실패:", response.status_code)
-            return False
+
+        current_poi_ccs = self.current_goal_json[current_poi]
+        
+        return current_poi_ccs
+
 
     def update_poi_state_dict(self, poi, state):
         """poi_state_dict의 특정 POI의 상태를 업데이트 후 상태 반환"""

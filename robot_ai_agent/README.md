@@ -4,6 +4,8 @@
 ## 실행방법 ##
 ## FastAPI로 로컬 서버 생성
 python -m uvicorn server_api:app --host 0.0.0.0 --port 8000 --reload --log-level debug
+python -m uvicorn server_api:app --host 0.0.0.0 --port 8200 --reload --log-level debug
+
 
 ## 클라이언트 파일(로봇입력)
 python server_api_client_test.py
@@ -21,6 +23,13 @@ ngrok config add-authtoken 2amxjrTAq8tsD02o2Ds4JqgCges_2hTjD1iZVStiwptCWpZfn
 
 ## Ngrok로 서버 접속 주소 생성 
 ngrok http 8000
+ngrok http --domain=quick-busy-hamster.ngrok-free.app 8000
+
+
+8000 quick-busy-hamster.ngrok-free.app
+8100 d45b-14-52-91-70.ngrok-free.app
+ngrok start --all
+
 
 메인 파일
 - main.py

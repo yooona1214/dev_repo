@@ -8,7 +8,7 @@ from datetime import datetime
 import requests
 
 from fastapi import Request, FastAPI, BackgroundTasks
-
+from fastapi.middleware.cors import CORSMiddleware
 import numpy as np
 import pandas as pd
 import os
@@ -26,6 +26,13 @@ from modules.db_manager import *
 # FastAPI 서버 연결
 app = FastAPI()
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # 모든 도메인 허용 (배포 환경에서는 특정 도메인만 허용하도록 설정하는 것이 좋음)
+    allow_credentials=True,
+    allow_methods=["*"],  # 모든 HTTP 메소드 허용
+    allow_headers=["*"],  # 모든 HTTP 헤더 허용
+)
 # Redis 클라이언트 생성
 r = redis.Redis(host='localhost', port=6379, db=0)
 
@@ -59,14 +66,19 @@ async def root():
     return {"message": "ROBOT SERVER IS OPENED"}
 
 # 1. 골 추론 요청
-@app.post("/action_request/{robot_id}")
-async def chat(robot_id: str,request: Request):
+@app.post("/action_request")
+async def chat(request: Request):
     """post"""
 
     robotrequest = await request.json()
-    response_chat = response_chat_goal(request=robotrequest)
+    response_chat, intent, final_poi_list = response_chat_goal(request=robotrequest)
     
-    return response_chat
+    response_data =  {"llm_output": response_chat , "intent" : int(intent), "poi_list": final_poi_list}
+    response = json.dumps(response_data, ensure_ascii=False)
+    
+    return response
+
+
 
 
 def response_chat_goal(request):
@@ -85,56 +97,44 @@ def response_chat_goal(request):
     # 첫 발화기준 로봇 세션 id 생성
     session_id = goal_infer_agent.check_new_service(robot_id)
     
-    # 골 추론 에이전트 
-    agent_id, agent_response = goal_infer_agent.route(user_input,robot_x, robot_y, session_id)
-    logging.info("gpt_res: %s", agent_response)
-
-    # 디비에 저장
-    dbmanager.add_turn(robot_id, session_id, time_stamp, user_input, agent_response, agent_id)
-    
-    # 응답 보내기
-    res_chat_goal = {"output": agent_response}
-
-    return res_chat_goal
-
-
-# 2. poi_list 요청 Task manager 실행
-@app.post("/poi_list/{robot_id}")
-async def chat(robot_id: str,request: Request):
-    """
-    골 추론 에이전트에서, poi_list가 뽑히고, goal.json이 모두 생성 된 후에 전송 될것
-    Task manager 실행 """
-
-    #### 여기는 책임님 코드 완료 되면 주석 해제
-    # instance_goal_agent = goal_infer_agent(robot_id)
-    # # 여기서 poi 리스트 뽑기전에, poi검증도 하고, goal.json 추출도 다 할것임
-    # ### 다 됐다는 트리거 필요
-    # # 여기서 poi 설정값 리스트 [[poi1, 103], [poi2, 100],''''] 요런식 나올것임
-    # response_poi_arg_list = instance_goal_agent.get_poi_list()
-    
-    #### 그전까지 테스트
-    done = False
-    
-    robotrequest = await request.json()
-    response_poi_arg_list = response_poi_arg(request=robotrequest)
+    if user_input == "주행해줘":
         
-
-
-    # robot_id 별로 task manager 선언
-    task_manager = TaskManager.get_instance(robot_id)
+        agent_response = "테스트입니다"
+        intent = 3
+        final_poi_list = [["1층-융기원-20240905154025_로봇AX솔루션", "1", "4", "2"], ["1층-융기원-20240905154025_스마트단말SW연구", "1", "4", "2"]]        
+        
+        
+        return agent_response, intent, final_poi_list
     
-    # goal_agent에서 생성한 poi 설정값 리스트으로 current_service_start 서비스에 보낼 goal.json 생성
-    goal_json = task_manager.generate_goal_json(response_poi_arg_list)
-    
-    # task manager에서 사용할 상태 테이블 생성
-    task_manager.initialize_poi_state_dict(goal_json)
-    done = True
+    else:
+        # 골 추론 에이전트 
+        agent_id, agent_response, intent = goal_infer_agent.route(user_input,robot_x, robot_y, session_id)
+        
+        if intent != 3:
+            final_poi_list = []
 
-    if done:
-        return response_poi_arg_list
+        # intent가 3이면 goal_json 만들기
+        if intent == 3:
+            
+            # robot_id 별로 task manager 선언
+            task_manager = TaskManager.get_instance(robot_id)
+            
+            goal_json_poi_list, only_poi_list = goal_infer_agent.get_poi_list()
+            final_poi_list = only_poi_list
 
-def response_poi_arg(request):
-    return request['poi_arg_list']
+            # goal_agent에서 생성한 poi 설정값 리스트으로 current_service_start 서비스에 보낼 goal.json 생성
+            goal_json = task_manager.generate_goal_json(goal_json_poi_list)
+            
+            # task manager에서 사용할 상태 테이블 생성
+            task_manager.initialize_poi_state_dict(goal_json)
+        
+        print("=============================================")
+        print("=============================================")
+        print("=============================================")
+        print("agent_id: ", agent_id, "\nagent_response:", agent_response, "\nintent:", intent, "\nfinal_poi_list:", final_poi_list)
+        print("=============================================")
+        
+        return agent_response, intent, final_poi_list
 
 
 
@@ -149,17 +149,23 @@ async def chat(robot_id: str,request: Request):
     task_manager =  TaskManager.get_instance(robot_id)
     
     # poi_state_dict를 보고 현재 not_done인 가장 빠른 poi의 정보를 불러오기
-    task_manager.find_current_poi()
+    current_poi = task_manager.find_current_poi()
     
     # current_service_start 생성
-    task_manager.send_current_service_start(service_id, task)
-    return 
+    current_service_start = task_manager.load_current_service_start(current_poi)
+    
+    return current_service_start
+
+
 
 
 # task_finished 요청
 @app.post("/task_finished/{robot_id}")
 async def chat(request: Request):
     """post"""
+
+
+
 
     robotrequest = await request.json()
 
