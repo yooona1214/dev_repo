@@ -428,7 +428,11 @@ class GoalInferenceAgent:
         print("****************************************************")
         print("****************************************************")
         
+        if user_input == "!다시":
+            self.restart_service()
+            return "!다시", '인스턴스 초기화', '00000'
 
+        
         # 챗 히스토리 로드
         self.chat_history = self.db_manager.get_conversation_history(self.robot_id, session_id)  
 
@@ -562,69 +566,228 @@ class GoalInferenceAgent:
 
 
 
-class GoalVerificationAgent:
+class ReplanningAgent:
     def __init__(self, db_manager):
+        # General Chat 응답 생성 로직 (구글 검색, RAG 등)
+        # tool1 : google serper
+        # tool2 : RAG
+        self.tool_google = [
+            GoogleSerperRun(
+                api_wrapper=GoogleSerperAPIWrapper(
+                    k=5, gl="kr", hl="kr", serper_api_key=SERPER_API_KEY
+                )
+            )
+        ]
+        self.google_agent = create_openai_functions_agent_with_history(
+            llm_google, self.tool_google, google_prompt
+        )
+        self.google_executor = AgentExecutor(
+            agent=self.google_agent, tools=self.tool_google, verbose=True
+        )
+
         self.db_manager = db_manager
 
     def respond(self, user_input, session_id):
-        # Goal 검증 로직
-        goal = json.loads(self.db_manager.redis_client.get(f"{session_id}_goal"))
-        return f"Goal verified: {goal['goal']}"
+        chat_history = self.db_manager.get_conversation_history(
+            session_id, "general_chat"
+        )
+        response = self.google_executor.invoke(
+            {"input": user_input, "chat_history": chat_history}
+        )
+        return response
 
 
-class TaskPlanningAgent:
-    def __init__(self, db_manager):
-        self.db_manager = db_manager
-
-    def respond(self, user_input, session_id):
-        # Task 계획 로직
-        plan = {"task": "planned_task", "timestamp": str(datetime.now())}
-        self.db_manager.redis_client.set(f"{session_id}_plan", json.dumps(plan))
-        return "Task planned."
-
-
-class TaskVerificationAgent:
-    def __init__(self, db_manager):
-        self.db_manager = db_manager
-
-    def respond(self, user_input, session_id):
-        # Task 검증 로직
-        plan = json.loads(self.db_manager.redis_client.get(f"{session_id}_plan"))
-        return f"Task verified: {plan['task']}"
-
-
-class RobotControlAgent:
+class GoalInferenceAgent:
     def __init__(self, db_manager, goal_json_path):
-        self.agents = {
-            "goal_inference": GoalInferenceAgent(db_manager, goal_json_path),
-            "goal_verification": GoalVerificationAgent(db_manager),
-            "task_planning": TaskPlanningAgent(db_manager),
-            "task_verification": TaskVerificationAgent(db_manager),
-        }
-        self.state = None
         self.db_manager = db_manager
+        self.base_goal_json_path = goal_json_path
+        
+        # 기본 로봇 셋팅
+        self.chat_history = []
+        self.poi_list = []
+        self.new_service = False
+        self.robot_id = None
+        self.session_id = None
+        self.goal_generated = None
+        self.current_agent = "replanning_intent_agent" # 맨처음엔 goal_chat한테 가게 설정해야함
+        self.ro_x = None
+        self.ro_y = None
+        self.goal_json = None
+        self.summary_flag = False
+    
+        
+        # 체인버전
+        self.goal_builder_chain = (
+            goal_builder_prompt | llm_goal_builder | StrOutputParser()
+        )
 
-    def route(self, user_input, session_id):
-        # # 특정 조건에 따라 하위 에이전트 선택 및 실행
-        # if "infer goal" in user_input:
-        #     self.state = "goal_inference"
-        # elif "verify goal" in user_input:
-        #     self.state = "goal_verification"
-        # elif "plan task" in user_input:
-        #     self.state = "task_planning"
-        # elif "verify task" in user_input:
-        #     self.state = "task_verification"
-        # else:
-        #     return "Unknown command."
+        # Agent 1: 대화 및 csv를 통한 list 생성, tool 사용 에이전트 버전
+        
+        rag_robot_info2 = create_vector_store_as_retriever2(
+            csv_path=csv_path2,
+            str1="KT_floor_Information_fot_Docent_Robot",
+            str2="This is a data containing space or artwork name, position and description for space and artworks.",
+        )
+        
+        tool_robot_info2 = [rag_robot_info2]
+        
+        tool_robot_info = tool_robot_info2
+        
+        replanning_intent_agent = create_openai_functions_agent_with_history(
+            llm_goal_builder, tool_robot_info, replanning_intent_prompt
+        )
+        self.replanning_intent_executor = AgentExecutor(
+            agent=replanning_intent_agent, tools=tool_robot_info, verbose=True
+        )
+        
+        replanning_chat_agent = create_openai_functions_agent_with_history(
+            llm_goal_builder, tool_robot_info, replanning_chat_prompt
+        )
+        self.replanning_goal_chat_executor = AgentExecutor(
+            agent=replanning_chat_agent, tools=tool_robot_info, verbose=True
+        )
 
-        self.state = "goal_inference"
+        # Agent 2: POI 리스트 생성 에이전트 정의
+        generate_poi_list_agent = create_openai_functions_agent_with_history(
+            llm_goal_builder, tool_robot_info, generate_poi_list_prompt
+        )
+        self.generate_poi_list_executor = AgentExecutor(
+            agent=generate_poi_list_agent, tools=tool_robot_info, verbose=True
+        )
 
-        return self.agents[self.state].respond(user_input, session_id)
+        # Agent 3: 목표 완료 확인 에이전트 정의
+        goal_done_check_agent = create_openai_functions_agent_with_history(
+            llm_goal_builder, tool_robot_info, goal_done_check_prompt
+        )
+        self.goal_done_check_executor = AgentExecutor(
+            agent=goal_done_check_agent, tools=tool_robot_info, verbose=True
+        )
+        
+        # Agent 3: 목표 완료 확인 에이전트 정의
+        goal_validation_agent = create_openai_functions_agent_with_history(
+            llm_goal_builder, tool_robot_info, goal_validation_prompt
+        )
+        self.goal_validation_executor = AgentExecutor(
+            agent=goal_validation_agent, tools=tool_robot_info, verbose=True
+        )
+
+        # Agent 4: 요약 에이전트 정의
+        summary_agent = create_openai_functions_agent_with_history(
+            llm_goal_builder, tool_robot_info, goal_summary_prompt
+        )
+        self.summary_executor = AgentExecutor(
+            agent=summary_agent, tools=tool_robot_info, verbose=True
+        )
+        
+    def _get_goal_json_path(self, session_id):
+        """세션 ID에 기반한 goal.json 파일 경로를 생성"""
+        # 위치는 /data/아래
+        return f"data/goal_{session_id}.json"
+
+    def _copy_base_goal_json(self, session_id):
+        """기본 goal.json 파일을 세션별로 복사하여 새 파일을 처음에만 생성"""
+        new_goal_json_path = self._get_goal_json_path(session_id)
+        if not os.path.exists(new_goal_json_path):
+            shutil.copy(self.base_goal_json_path, new_goal_json_path)
+        return new_goal_json_path
+
+    def load_goal_json(self, session_id):
+        """세션별 goal.json 파일을 로드"""
+        goal_json_path = self._get_goal_json_path(session_id)
+        if os.path.exists(goal_json_path):
+            with open(goal_json_path, "r") as f:
+                return json.load(f)
+        else:
+            raise FileNotFoundError(
+                f"Goal JSON file for session {session_id} not found."
+            )
+
+    def save_goal_json(self, session_id, goal_data):
+        """세션별 goal.json 파일에 현재 상태를 저장"""
+        goal_json_path = self._get_goal_json_path(session_id)
+        
+        # 불필요한 ```json 제거
+        cleaned_json_data = goal_data.strip('```json').strip('```').strip()
+
+        # JSON 문자열을 Python 딕셔너리로 변환
+        try:
+            parsed_data = json.loads(cleaned_json_data)
+
+            # JSON 데이터를 파일에 저장
+            with open(goal_json_path, "w", encoding='utf-8') as f:
+                json.dump(parsed_data, f, indent=4, ensure_ascii=False)  # JSON 데이터를 파일로 저장
+            print(f"JSON 데이터가 '{goal_json_path}' 파일로 저장되었습니다.")
+        
+        except json.JSONDecodeError as e:
+            print(f"JSON 디코딩 오류: {e}")
+
+    def _update_goal_json_with_user_input(self, poi_list, goal_data):
+        """LLM을 사용하여 사용자의 입력을 해석하고 goal.json을 업데이트합니다."""
+        prompt = f"Poi_list: {poi_list}\nCurrent goal data:\n{json.dumps(goal_data, indent=4)}\nBased on the poi list, update the goal data accordingly."
+        response = self.goal_json_executor.invoke(
+            {"input": prompt, "chat_history": self.chat_history}
+        )
+        updated_goal_data = response['output']
+        return updated_goal_data
 
 
-# multi agents 선언
-def get_multi_agents(db_manager, GOAL_JSON_PATH):
-    return {
-        "general_chat": GeneralChatAgent(db_manager),
-        "robot_control": RobotControlAgent(db_manager, GOAL_JSON_PATH),
-    }
+    def _cache_turn(
+        self, session_id, agent_id, user_input, goal_data, additional_question=None
+    ):
+        """캐시 메모리에 대화 저장"""
+        turn = {
+            "user_input": user_input,
+            "goal_data": goal_data,
+            "additional_question": additional_question,
+            "timestamp": str(datetime.now()),
+        }
+        self.db_manager.redis_client.rpush(session_id, json.dumps(turn))
+        
+    def check_new_service(self, robot_id):
+        "맨 처음 발화가 들어온 시점으로 세션 id 자체 생성"
+        if not self.new_service:
+            self.session_id = self.db_manager.get_session_id()
+            self.new_service = True
+            self.robot_id = robot_id
+        
+        return self.session_id
+    
+    def restart_service(self):
+        """세션 초기화"""
+        self.chat_history = []
+        self.poi_list = []
+        self.new_service = False
+        self.robot_id = None
+        self.session_id = None
+        self.goal_generated = None
+        self.current_agent = "intent_agent" 
+        self.ro_x = None
+        self.ro_y = None
+        self.goal_json = None
+        
+        
+    def replnning_intent_agent(self, user_input, session_id):
+        """채팅 에이전트 - 사용자 입력 처리"""
+        response = self.replanning_intent_executor.invoke({
+            "input": user_input,
+            "chat_history": self.chat_history
+        })
+
+        # 불필요한 ```json 제거 및 JSON 디코딩
+        replanning_intent = response["output"]
+        
+        return replanning_intent
+    
+    def replnning_respond_goal_chat_agent(self, user_input, session_id):
+        """채팅 에이전트 - 사용자 입력 처리"""
+        response = self.replanning_goal_chat_executor.invoke({
+            "input": user_input,
+            "chat_history": self.chat_history
+        })
+
+        # 불필요한 ```json 제거 및 JSON 디코딩
+        respond_goal_chat = response["output"]
+        print("###respond_goal_chat_agent: ", respond_goal_chat)
+
+        return respond_goal_chat
+        

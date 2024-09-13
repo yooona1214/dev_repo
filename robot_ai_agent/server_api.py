@@ -140,10 +140,9 @@ def response_chat_goal(request):
 
 
 # 3. current_service_start 요청
-@app.post("/current_service_start/{robot_id}")
+@app.get("/current_service_start/{robot_id}")
 async def chat(robot_id: str,request: Request):
-    """post"""
-    robotrequest = await request.json()
+    """get"""
 
     # robot_id 에 맞는 task_manager 인스턴스 로드
     task_manager =  TaskManager.get_instance(robot_id)
@@ -160,16 +159,32 @@ async def chat(robot_id: str,request: Request):
 
 
 # task_finished 요청
-@app.post("/task_finished/{robot_id}")
-async def chat(request: Request):
+@app.get("/task_finished/{robot_id}")
+async def chat(robot_id: str,request: Request):
     """post"""
+    
+    # robot_id 에 맞는 task_manager 인스턴스 로드
+    task_manager =  TaskManager.get_instance(robot_id)
+    current_poi = task_manager.find_current_poi()
+    
+    updated_poi_dict = task_manager.update_poi_state_dict(current_poi, "done")
+    
+    
+    return {"Task finished 잘 왔당 헤헤"}
 
 
 
+# service_cancel 요청
+@app.get("/service_cancel/{robot_id}")
+async def chat(robot_id: str,request: Request):
+    """post"""
+    
+    # robot_id 에 맞는 task_manager 인스턴스 로드
+    goal_infer_agent = get_or_create_agent(robot_id)
+    goal_infer_agent.restart_service()
+    
+    return {"초기화 돼찌롱 메롱"}
 
-    robotrequest = await request.json()
-
-    return 
 
 
 # replanning 요청
