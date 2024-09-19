@@ -8,7 +8,7 @@ def test_action_request():
     # 8000번 포트
     
     
-    url = "http://quick-busy-hamster.ngrok-free.app/action_request" # 로컬에서 FastAPI 서버가 실행 중이어야 합니다.
+    url = "http://cd72-175-209-74-146.ngrok-free.app/current_service_start/robot_1/"  # 로컬에서 FastAPI 서버가 실행 중이어야 합니다.
 
     while True:
         # user_input = input("대화 입력: ")
@@ -30,7 +30,7 @@ def test_action_request():
         }
         
         # POST 요청을 통해 서버에 데이터를 전송합니다.
-        response = requests.post(url, json=test_request)
+        response = requests.get(url, json=test_request)
       
         # 서버로부터 받은 응답을 출력합니다.
         if response.status_code == 200:

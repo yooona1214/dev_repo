@@ -5,14 +5,14 @@ def test_action_request():
 
 
     # FastAPI 서버의 엔드포인트 URL
-    url = "http://5f6a-14-52-91-70.ngrok-free.app/action_request/"  # 로컬에서 FastAPI 서버가 실행 중이어야 합니다.
+    url = "http://1e0c-175-209-74-146.ngrok-free.app/action_request/"  # 로컬에서 FastAPI 서버가 실행 중이어야 합니다.
 
     while True:
         user_input = input("대화 입력: ")
         
         # 테스트할 로봇 요청 데이터를 생성합니다.
         test_request = {
-            "robot_id": "robot_1",
+            "robot_id": "robot_yna_test",
             "user_query": user_input,
             "time_stamp": "2024-09-04T10:00:00Z",
             "loc_x": 1.0,
