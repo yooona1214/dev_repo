@@ -5,8 +5,7 @@ import redis
 import atexit
 from dotenv import load_dotenv
 
-from modules.agents import *
-from modules.router import *
+from modules.agents_modifying import *
 from modules.db_manager import *
 
 # Redis 클라이언트 생성
@@ -18,14 +17,16 @@ GOAL_JSON_PATH = 'data/goal.json'
 # DB manager 생성
 dbmanger = DBManager(r)
 
-# Router 생성
-router = Router(encoder=OpenAIEncoder())
-
-# multi agents 선언
-agents = get_multi_agents(dbmanger, GOAL_JSON_PATH)
 
 # 종료 시 Redis 캐시를 비우도록 atexit에 등록
 atexit.register(dbmanger.clear_redis_cache)
+
+
+# task manager 값 설정
+previous_poi_list = ['여자화장실', '윤명로_미술작품']
+robot_x = -50.0,
+robot_y = -70.0
+robot_id = "robot_yna"
 
 # 대화 main loop
 START = False
@@ -37,54 +38,16 @@ while True:
         session_id = dbmanger.get_session_id()
         START = True
     
-    # 모든 대화가 로봇 컨트롤임.
-    route_name = "robot_control"
-    current_agent = route_name
+    # Graph DB 연결
+    
+    
+    # ### Replanning 돌려볼때 주석 해제
+    # replanning_agent =  ReplanningAgent.get_instance(robot_id, dbmanger, GOAL_JSON_PATH)
+    # session_id = replanning_agent.check_new_service(robot_id)
+    # current_agent, respond_goal_chat, intent = replanning_agent.route(user_input, previous_poi_list, robot_x, robot_y, session_id)
 
-    response = current_agent.route(user_input, session_id)
-    
-    # agent_response = response['output']
-    agent_response = response
-    
-    dbmanger.add_turn(session_id, user_input, agent_response, route_name)
-
-
-
-
-
-    ###############
-    # user_input = input("입력: ")
-    # if not START:
-    #     # 현재 날짜와 시간을 세션 ID로 설정
-    #     session_id = dbmanger.get_session_id()
-    #     START = True
-
-    # route_name = router.route(user_input)
-    # print("Route: ", route_name)
-    # current_agent = agents[route_name]
-    # # 라우팅
-    # if route_name == "robot_control": # 로봇 컨트롤
-    #     response = current_agent.route(user_input, session_id)
-    
-    # else: # 일반 대화
-    #     response = current_agent.respond(user_input,session_id)
-
-    # # agent_response = response['output']
-    # agent_response = response
-    
-    # dbmanger.add_turn(session_id, user_input, agent_response, route_name)
-    
-    #################
-    # # 라우팅
-    # if route_name == "robot_control": # 로봇 컨트롤
-    #     # response = current_agent.route(user_input, session_id)
-    #     agent_response = "골추론 에이전트 개발 중"
-    
-    # else: # 일반 대화
-    #     response = current_agent.respond(user_input,session_id)
-    #     agent_response = response['output']
-    
-    # dbmanger.add_turn(session_id, user_input, agent_response, route_name)
-    
-    
-    
+    # print("\n\n\n")
+    # print("~~~~~~~~~~~~~~~~~~~~~~~~")
+    # print(current_agent)
+    # print(respond_goal_chat)
+    # print(intent)
