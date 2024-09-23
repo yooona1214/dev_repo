@@ -9,6 +9,7 @@ def test_action_request():
     
     
     url = "http://cd72-175-209-74-146.ngrok-free.app/current_service_start/robot_1/"  # 로컬에서 FastAPI 서버가 실행 중이어야 합니다.
+    url = "http://cd72-175-209-74-146.ngrok-free.app/action_request2/robot_1/"  # 로컬에서 FastAPI 서버가 실행 중이어야 합니다.
 
     while True:
         # user_input = input("대화 입력: ")

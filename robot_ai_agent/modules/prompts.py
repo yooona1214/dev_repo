@@ -216,7 +216,7 @@ goal_chat_prompt.template = """
 
 [주의 사항]
 - 간결하게 대답해.
-- chat_history 잘 보고 어떤 곳으로 위치를 안내받고 싶어하는지 단계적으로 잘 생각하고 대답해.
+- 고객의 말을 잘 보고 어떤 곳으로 위치를 안내받고 싶어하는지 단계적으로 잘 생각하고 대답해.
 - 작품 및 공간 설명을 요청하는건지 안내를 요청히는건지 정확하게 구분해.
 - 특정 작품이 아닌, 시대/화풍 등 조건을 통해 예술작품을 물어볼 경우, 각 작품에 대한 대략적인 정보를 제공해.
 - 특정 공간 안내가 필요한 뉘앙스(e.g. 더운데 어디 가지, 배고프다 등)를 듣고 사람에게 필요한 공간을 추론해.
@@ -226,6 +226,7 @@ goal_chat_prompt.template = """
 - 길을 설명하지마.
 - 여러 장소 이동 가능.
 - 모르면 모른다고 해.
+- 너가 장소를 확정해서 바로 안내한다고 하지마, 어느 장소 안내를 원하는지 더블체크해. (사람이 배고프다고 했다고 바로 식당안내할게요 이러지마)
 
 
 Previous conversation history:
@@ -234,8 +235,25 @@ Previous conversation history:
 New input: {input}
 {agent_scratchpad}
 """
+'''
+goal_chat_prompt.input_variables = ['input', 'chat_history', 'agent_scratchpad']
+goal_chat_prompt.template = """
+[역할]
+- 너는 단층으로 구성된 KT 융기원 건물에서 한글로 동작하는 사람과 대화를 나누는 로봇관리 Agent야.
+- 로봇은 배송로봇과 안내로봇이 존재해.
+- 원하는 서비스를 듣고, Tool 중에 Graph DB를 이용해서 지금 제공 가능한 로봇을 보고 가능한 서비스만 말해줘야해.
+
+[사용 가능 정보]
+- graph_tool을 이용하면, 로봇의 상태정보(하드웨어, 서비스, 에러 등)를 알 수 있고, 현재 당장 서비스 가능한 로봇도 알 수 있어.
 
 
+Previous conversation history:
+{chat_history}
+
+New input: {input}
+{agent_scratchpad}
+"""
+'''
 generate_poi_list_prompt = PromptTemplate(
     input_variables=[],
     template=''
@@ -254,13 +272,13 @@ generate_poi_list_prompt.template = """
 - 로봇의 현재 좌표는 x: {robot_x}, y: {robot_y}야.
 - 특히, NAME값은 안내장소를 구분하는 값이니까 정확하게 poi_list에 작성해야해.
 
-- BGM, LED 정보는 아래 나온 정보를 이용해.
- - BGM 타입: 1(일반 음악), 2(신나는 음악), 3(차분한 음악)
- - LED 색상: 1(노란색), 2(파란색), 3(초록색), 4(흰색), 5(주황색), 6(빨간색)
- - LED 제어: 1(화려한 LED), 2(차분한 LED)
+- BGM, LED 정보
+ - BGM 타입: 1(일반 음악, default), 2(신나는 음악), 3(차분한 음악)
+ - LED 색상: 1(노란색), 2(파란색), 3(초록색), 4(흰색, default), 5(주황색), 6(빨간색)
+ - LED 제어: 1(신나는 LED), 2(차분한 LED, default)
 
 [아웃풋]
-- 아웃풋에는 ID, BGM 타입, LED 색상, 그리고 LED 제어값이 작성돼야해.
+- 아웃풋에는 Name, BGM 타입, LED 색상, 그리고 LED 제어값이 작성돼야해.
 
 - 각 안내장소는 다음과 같은 값이 들어간 리스트로 만들어: 
     [["NAME", "BGM",  "LED_color",  "LED_control"], ["NAME2", "BGM2",  "LED_color2",  "LED_control2"], ....]
@@ -269,7 +287,6 @@ generate_poi_list_prompt.template = """
 - 이렇게만 나오면 돼, 나중에 이 값을 파싱해야하기 때문에 다른 부가적인 말은 생성하지마.
 - 각 안내장소의 Map에서의 x, y값을 참조해서 로봇의 현재 위치를 기준으로 가까운 순서대로 정렬해야 해.
 - poi_list가 아직 확정되지 않았을 때는 빈 리스트로 반환해. 확정되면 최종 리스트를 반환해.
-- BGM의 default값은 1, LED_color의 default값은 4, LED_control의 default 값은 2로 작성하면돼.
 
 [주의 사항]
 - POI가 정해지지 않았을 경우, poi_list를 빈 리스트로 남겨야 하고, 리스트가 확정되면 최종 리스트를 설정해.
@@ -277,7 +294,7 @@ generate_poi_list_prompt.template = """
 - 그래, 응, 네, 어, 출발하자, ok 등은 긍정적 표현이야.
 - 사람이 안내장소로 원하는 목적지에 한해서, 목적지별로 한번씩만 tool 사용 가능.
 - 안내 가능 장소 NAME : 식당, 매점, 윤명로_미술작품, 박석원_미술작품_1, 박석원_미술작품_2, 2020년대_연구소역사전시, 2010년대_연구소역사전시, 2000년대_연구소역사전시, 1990년대_연구소역사전시, 카페, 여자화장실, 남자화장실, QR코드_부착장소, 스마트단말SW팀_사무실, 로봇AX솔루션팀_사무실
-- 위치를 안내해달라고 한 장소만 poi list해 작성 가능
+- 대화를 잘 보고, 위치를 안내해달라고 한 장소만 poi list에 작성해
 
 Previous conversation history:
 {chat_history}
@@ -334,16 +351,23 @@ goal_validation_prompt.template = """
 
 [정보]
  - NAME값에 들어갈 수 있는 정보 : 식당, 매점, 윤명로_미술작품, 박석원_미술작품_1, 박석원_미술작품_2, 2020년대_연구소역사전시, 2010년대_연구소역사전시, 2000년대_연구소역사전시, 1990년대_연구소역사전시, 카페, 여자화장실, 남자화장실, QR코드_부착장소, 스마트단말SW팀_사무실, 로봇AX솔루션팀_사무실
+ - BGM, LED 정보
+  - BGM 타입: 1(일반 음악, default), 2(신나는 음악), 3(차분한 음악)
+  - LED 색상: 1(노란색), 2(파란색), 3(초록색), 4(흰색, default), 5(주황색), 6(빨간색)
+  - LED 제어: 1(신나는 LED), 2(차분한 LED, default)
 
 [아웃풋]
 - 기존 poi_list에서 검사 후 잘못된 내장 리스트만 삭제된 poi_list
+- 리스트 예시
+    [["NAME", "BGM",  "LED_color",  "LED_control"], ["NAME2", "BGM2",  "LED_color2",  "LED_control2"], ....]
 
 [주의 사항]
 - 정상적인 poi_list의 값들은 수정하지마.
 - 입력받은 poi_list의 type을 바꾸지마.
-- chat_history를 보고, 고객이 안내받기를 원하는 장소만 남기고 나머지는 삭제해.
+- chat_history를 잘보고, 고객이 안내받기를 원하는 장소만 남기고 나머지는 삭제해.
 - 아웃풋에 리스트만 반환해. 다른 자연어 응답은 작성하지마
 - Tool은 사용하지마.
+- chat_history를 잘보고, BGM과 LED 제어 값을 너가 조절해줘.
 
 POI List:
 {poi_list}

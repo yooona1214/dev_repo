@@ -210,7 +210,23 @@ def response_replanning_agent(request):
     robot_x = request["loc_x"]
     robot_y = request["loc_y"]
 
-
-# if __name__ == "__main__":
-#     import uvicorn
-#     uvicorn.run(app, host="0.0.0.0", port=8000)
+    # 리플래닝 에이전트 해야하는 일
+    # 1. task manager에서 현재 not_done인 poi들 불러오기
+    # 2. replanning 에이전트는 not_done인거랑 user input을 입력으로 새로운 poi list 만들기
+    # 3. 이때, 3개 병렬 에이전트로 구성되어야함
+    
+    # # P1. robot_id 에 맞는 task_manager 인스턴스 로드
+    # task_manager =  TaskManager.get_instance(robot_id)
+    # previous_poi_list = task_manager.find_current_poi()
+    
+    # task manager 값 설정 (Test)
+    previous_poi_list = {'남자화장실': 'done', '여자화장실': 'not_done', '윤명로_미술작품': 'not_done'} 
+    robot_x = -50.0,
+    robot_y = -70.0
+    robot_id = "robot_yna"
+        
+    # P2. replanninag 에이전트 : previous + user input으로 새로운 poi list 만들기    
+    # 첫 발화기준 로봇 세션 id 생성 
+    replanning_agent =  ReplanningAgent.get_instance(robot_id, dbmanager, GOAL_JSON_PATH)
+    session_id = replanning_agent.check_new_service(robot_id)
+    replanning_agent.route(user_input, previous_poi_list, robot_x, robot_y, session_id)
