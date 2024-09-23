@@ -26,6 +26,16 @@ from modules.tools import *
 from langchain_community.graphs import Neo4jGraph
 from langchain_community.chains.graph_qa.cypher import GraphCypherQAChain
 
+from langchain_community.chains.graph_qa.cypher_utils import CypherQueryCorrector, Schema
+from langchain_openai import ChatOpenAI
+from langchain_community.graphs import Neo4jGraph
+from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langchain.pydantic_v1 import BaseModel
+from langchain.schema.output_parser import StrOutputParser
+from langchain.schema.runnable import RunnablePassthrough
+from typing import Type
+from langchain.tools import BaseTool
+
 # Redis 클라이언트 생성
 redis_client = redis.Redis(host="localhost", port=6379, db=0)
 
@@ -34,6 +44,7 @@ load_dotenv()
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 SERPER_API_KEY = os.getenv("SERPER_API_KEY")
+
 os.environ["LANGCHAIN_TRACING_V2"] = "true"
 os.environ["LANGCHAIN_PROJECT"] = "Robot AI Agent"
 os.environ["LANGCHAIN_ENDPOINT"] = "https://api.smith.langchain.com"
@@ -46,7 +57,7 @@ os.environ["GPT_MODEL"] = "gpt-3.5-turbo"
 llm_4 = ChatOpenAI(model="gpt-4-0613")
 llm_4_t = ChatOpenAI(model="gpt-4-0125-preview", temperature=0)
 #llm_4_o = ChatOpenAI(model="gpt-4o-mini-2024-07-18")
-llm_4_o = ChatOpenAI(model="gpt-4o-2024-08-06")
+llm_4_o = ChatOpenAI(model="gpt-4o-2024-08-06", temperature=0)
 llm_4_o_m = ChatOpenAI(model="gpt-4o-mini")
 llm_3_5 = ChatOpenAI(model="gpt-3.5-turbo-0125")
 
@@ -90,31 +101,22 @@ class GoalInferenceAgent:
             goal_builder_prompt | llm_goal_builder | StrOutputParser()
         )
 
-        from langchain_core.prompts import PromptTemplate
-
         
         # Graph 체인
-        # Cypher validation tool for relationship directions
-        corrector_schema = [
-            Schema(el["start"], el["type"], el["end"])
-            for el in graph.structured_schema.get("relationships")
-        ]
-        cypher_validation = CypherQueryCorrector(corrector_schema)
-        
+
         self.chain_test = GraphCypherQAChain.from_llm(
-        ChatOpenAI(model="gpt-4o-2024-08-06", temperature=0, api_key=OPENAI_API_KEY),
+        llm_4_o,
         graph=graph,
-        verbose=True
+        verbose=True,
+        prompt = cypher_generation_prompt
        )
 
-        
         graph_tool = Tool(
         name="Graph",
         func=self.execute_graph_query,
         description="""KT 연구소에 대한 공간 정보들을 Graph DB화 한 데이터 입니다. 
-        각 층마다 공간 정보와 연결 정보, 로봇 정보, 각 공간의 운영시간 등이 있습니다.
-        
-        """,
+        사용자의 발화에 맞게 정보를 검색한 후 검색한 결과를 바탕으로 자연어기반 답변을 생성합니다.
+        """
         )
         
         # Agent 1: 대화 및 csv를 통한 list 생성, tool 사용 에이전트 버전
@@ -144,7 +146,7 @@ class GoalInferenceAgent:
         
         # Agent 1: 채팅 에이전트 정의
         goal_chat_agent = create_openai_functions_agent_with_history(
-            llm_goal_builder, tool_robot_info, goal_chat_prompt
+            llm_goal_builder, tool_robot_info2, goal_chat_prompt
         )
         self.goal_chat_executor = AgentExecutor(
             agent=goal_chat_agent, tools=tool_robot_info2, verbose=True
@@ -191,7 +193,9 @@ class GoalInferenceAgent:
         
     def execute_graph_query(self,query):
         try:
+            # result = self.chain_test.invoke({"question": query})
             result = self.chain_test.invoke({"query": query})
+            
             if not result or result == "I don't know the answer.":
                 # 쿼리 결과가 없으면 실행 중단
                 return "결과를 찾을 수 없습니다. 다른 질문을 해주세요."
@@ -252,7 +256,8 @@ class GoalInferenceAgent:
         """채팅 에이전트 - 사용자 입력 처리"""
         response = self.goal_chat_executor.invoke({
             "input": user_input,
-            "chat_history": self.chat_history
+            "chat_history": self.chat_history,
+            "schema" : graph.schema
         })
 
         # 불필요한 ```json 제거 및 JSON 디코딩
