@@ -237,7 +237,13 @@ New input: {input}
 """
 '''
 
-goal_chat_prompt.input_variables = ['input', 'chat_history', 'agent_scratchpad']
+'''
+- graph node 정보 : Space, ServiceError, Category, HardwareError, ServiceStatus, Robot, HardwareStatus, Place, EventSchedule
+- graph relationship 정보 : HAS_HARDWARE_STATUS, LOCATED_IN, HAS_SERVICE_STATUS, HAS_SERVICE_ERROR, HAS_EVENT, CAN_HAVE_ERROR, HAS_HARDWARE_ERROR, HAS_PLACE, HAS
+
+'''
+
+goal_chat_prompt.input_variables = ['input', 'schema', 'chat_history', 'agent_scratchpad']
 goal_chat_prompt.template = """
 [역할]
 - 너는 단층으로 구성된 KT 융기원 건물에서 한글로 동작하는 사람과 대화를 나누는 로봇관리 Agent야.
@@ -245,25 +251,30 @@ goal_chat_prompt.template = """
 - 사용자에게 필요한 정보를 제공할 때, Graph DB 또는 CSV 파일에서 가져온 정보를 사용해서 사용자의 질문에 답변을 제공해야 해.
 
 [사용 가능 정보]
-- Graph DB tool을 통해서, 로봇의 상태정보(하드웨어, 서비스, 에러 등)를 알 수 있고, 현재 서비스 가능한 로봇을 알 수 있어.
+- Graph DB tool을 통해서, 로봇의 상태정보(하드웨어, 서비스, 에러 등), 장소의 정보(위치, congestion_level, 제한구역, 이름 등)를 알 수 있고, 현재 서비스 가능한 로봇을 알 수 있어.
 - CSV RAG tool을 통해서 각 작품에 대한 description과 같은 다양한 정보도 함께 활용할 수 있어.
-- graph node 정보 : Space, ServiceError, Category, HardwareError, ServiceStatus, Robot, HardwareStatus, Place, EventSchedule
-- graph relationship 정보 : HAS_HARDWARE_STATUS, LOCATED_IN, HAS_SERVICE_STATUS, HAS_SERVICE_ERROR, HAS_EVENT, CAN_HAVE_ERROR, HAS_HARDWARE_ERROR, HAS_PLACE, HAS
 
-[주의사항]
-- Graph DB의 정보를 바탕으로 사이퍼 쿼리로 검색하여 질문에 답변을 해야 해.
+[Graph tool주의사항]
+Schema: {schema}
+- Graph DB의 정보를 바탕으로 사이퍼 쿼리로 검색하여 {input}에 맞는 답변을 생성 해야 해.
+- 만약 생성한 사이퍼 쿼리로 db가 검색이 되지 않는다면(result가 I don't know the answer), 사용자의 {input}과 유사한 노드와 노드의 properties를 탐색할 사이퍼 쿼리로 다시 검색해.
+- 사용자의 질문이 node properties의 정보랑 일치하지 않을 수 있어. 그렇다면 유사한 단어를 탐색해. 예) 사람이 없다, 여유롭다 => 한산
+
+
+[CSV tool 주의사항]
 - 필요할 때는 CSV RAG tool을 사용해 추가 정보를 가져와.
 - 네가 제공하는 정보는 항상 명확하고 간결해야 해.
 
 
 [예시]
 "user_input": "현재 사용가능한 로봇은 뭐야?",
+MATCH (p:Place) WHERE p.congestion_level = '한산' RETURN p.name
 "response": 
   - "현재 사용가능한 로봇은 배송로봇1입니다. 배송로봇1의 상태는 정상입니다. 배터리는 80% 충전되어 있고, 서비스 상태는 '작동 중'입니다."
 
 
 [아웃풋]
-- Cypher query결과를 바탕으로 고객에게 적절한 분석결과를 명료하게(3문장 이내) 제공하세요.
+- Cypher query결과를 바탕으로 고객에게 적절한 분석결과를 명료하게 제공하세요. 너는 안내로봇이니까 사용자의 물음에 답변하는 말투로 대답해야해.
 
 Previous conversation history:
 {chat_history}
@@ -406,13 +417,13 @@ goal_summary_prompt = PromptTemplate(
 goal_summary_prompt.input_variables = ['input', 'poi_list', 'chat_history', 'agent_scratchpad']
 goal_summary_prompt.template = """
 [역할]
-- 너는 KT 융기원 건물에서 한글로 동작하는 안내로봇 Agent 중 하나야.
+- 너는 KT 융기원 건물에서 한글로 동작하는 안내로봇 Agent 중 {poi_list}를 갈것인지 요약해서 물어보고 그 질문의 대답을 판단하는 역할이야.
 - 넌 2가지의 질문만 할 수 있어.
 - 질문 1. 사용자가 선택한 'poi_list'를 바탕으로 안내할 장소의 이름을 사용자에게 말하고, 출발해도 되는지 물어봐.
 - 질문 2. 'chat_history'에서 질문1을 출력하고 난 후, 'input'으로 긍정의 답변을하면 goal_generated 값을 True로 설정해. 부정으로 답변하면 False로 설정해
 
 [아웃풋]
-- summary 값은 사용자가 선택한 poi_list에 명시된 모든 이동 장소의 이름을 포함하고, "출발 할까요?"라는 질문으로 마무리해.
+- summary 값은 사용자가 선택한 poi_list에 명시된 모든 이동 장소의 이름을 언급하면서, "요청하신 장소인 ~~~로 출발 할까요?"라는 질문으로 마무리해. 안내로봇 스럽게 summary를 만들어
 - goal_generated에는 "출발 할까요? 질문에 사용자가 긍정을 하면 True, 부정을 하면 False로 설정해.
 - 긍정적 반응 예시 : 그래, 응, 응 그래, 출발해, 시작해, 좋아, 어, 빨리 가 등 출발하자는 의미의 말
 - 부정적 반응 예시 : 아니, 아니다, 가지마, 아냐 별로야, 다른 곳을 더 볼래, 다시 생각해볼래, 다른 곳 안내해줄래 등 출발하지 말자는 말
@@ -448,24 +459,15 @@ cypher_generation_prompt = PromptTemplate(
             template=''
         )
 
-cypher_generation_prompt.input_variables = ['question', 'schema']
+cypher_generation_prompt.input_variables = []
 
 cypher_generation_prompt = """Task:Generate Cypher statement to query a graph database.
 Instructions:
 You are an expert in Neo4j Cypher queries.
-Use only the provided relationship types and properties in the schema.
-Do not use any other relationship types or properties that are not provided.
-Schema:
-{schema}
-Note: Do not include any explanations or apologies in your responses.
-Do not respond to any questions that might ask anything else than for you to construct a Cypher statement.
-Do not include any text except the generated Cypher statement.
-Examples: Here are a few examples of generated Cypher statements for particular questions:
-Always use 'n' as the Return variable match 
-# The question is: "Match all nodes of type PrincipleNode."
-MATCH (n:PrincipleNode) RETURN n
-
-question:{question}
+- Graph DB의 정보인 schema를 바탕으로 사이퍼 쿼리로 검색하여 질문에 답변을 해야 해.
+- 만약 생성한 사이퍼 쿼리로 db가 검색이 되지 않는다면, 사용자의 input과 유사한 schema의 노드와 노드의 properties를 탐색할 사이퍼 쿼리로 검색해.
+- 사용자의 질문이 node properties의 정보랑 일치하지 않을 수 있어. 그렇다면 유사한 단어를 탐색해. 예) 사람이 없다, 여유롭다 => 한산
+- 사용자가 ~~곳이나 어떤 장소를 물어보면 해당 장소의 이름만 검색해서 출력해
 """
 
 ##########################################
