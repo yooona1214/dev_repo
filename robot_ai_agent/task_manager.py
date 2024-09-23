@@ -128,22 +128,24 @@ class TaskManager:
         
     def find_current_poi(self):
         # state_dict 에서 값이 not_done인 제일 첫번째 key 뽑기
+        print("Current Poi Dictionary: ", self.poi_state_dict)
         for key, value in self.poi_state_dict.items():
             if value == 'not_done':
+                print("Current poi : ", key)
                 return key
         # return None  
-
+        
     def find_previous_poi_list(self):
-        # state_dict 에서 값이 not_done인 제일 첫번째 key 뽑기
-        for key, value in self.poi_state_dict.items():
-            if value == 'not_done':
-                return key
-        # return None  
+        # state_dict 에서 'not_done'인 key들을 추출하여 리스트로 반환
+        previous_poi_list = [key for key, value in self.poi_state_dict.items() if value == 'not_done']  
+        print("Previous POI LIST : ", previous_poi_list)
+        return previous_poi_list
+         
         
         
     def load_current_service_start(self, current_poi):
         """로봇 -> 서버 : current_service_start 전송 후 성공 여부 반환"""
-
+        print(current_poi)
         current_poi_ccs = self.current_goal_json[current_poi]
         
         return current_poi_ccs
