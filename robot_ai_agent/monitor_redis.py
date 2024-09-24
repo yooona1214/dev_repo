@@ -7,7 +7,7 @@ def print_conversation(session_id, r, seen_turn_count):
     new_turns = all_turns[seen_turn_count:]
 
     if new_turns:
-        print(f"=== 세션 ID: {session_id.decode('utf-8')} ===")
+        print(f"=== 로봇 ID: {session_id.decode('utf-8')} ===")
         for turn in new_turns:
             print(json.loads(turn))
         print("=======================================")

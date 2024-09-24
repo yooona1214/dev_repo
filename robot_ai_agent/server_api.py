@@ -48,6 +48,18 @@ atexit.register(dbmanager.clear_redis_cache)
 
 agents = {}
 
+def save_and_clear_cache(robot_id):
+    #######골 추론 종료 및 장기메모리 db에 저장/단기메모리 초기화
+    # db에 현재 캐쉬메모리 저장
+    dbmanager.save_conversations_to_postgresql(robot_id)
+    # 챗히스토리 초기화
+    # 캐쉬 메모리 삭제
+    if r.exists(robot_id):  # 해당 키가 존재하는지 확인
+        r.delete(robot_id)  # 해당 로봇 ID의 키 삭제
+        print(f"로봇 ID: {robot_id.encode('utf-8')}의 REDIS 챗히스토리를 모두 삭제했습니다.")
+    else:
+        print(f"로봇 ID: {robot_id.encode('utf-8')}에 해당하는 REDIS 챗 히스토리가 없습니다.")
+
 def get_or_create_agent(robot_id):
     if robot_id not in agents:
         # 에이전트가 없으면 생성 후 딕셔너리에 저장
@@ -104,7 +116,16 @@ def response_chat_goal(request):
         
         
         return agent_response, intent, final_poi_list
-    
+    elif user_input == "!다시":
+        # robot_id 에 맞는 task_manager 인스턴스 로드
+        goal_infer_agent = get_or_create_agent(robot_id)
+        goal_infer_agent.restart_service()
+        
+        # 메모리 저장 및 삭제
+        save_and_clear_cache(robot_id)
+        print("초기화 요청 완료")
+        
+        return "인스턴스, 레디스 초기화", 0 , []
     else:
         # 골 추론 에이전트 
         agent_id, agent_response, intent = goal_infer_agent.route(user_input,robot_x, robot_y, session_id)
@@ -118,6 +139,7 @@ def response_chat_goal(request):
             # robot_id 별로 task manager 선언
             task_manager = TaskManager.get_instance(robot_id)
             
+            # [['로봇AX솔루션팀_사무실', '1', '4', '2']], ['로봇AX솔루션팀_사무실']
             goal_json_poi_list, only_poi_list = goal_infer_agent.get_poi_list()
             final_poi_list = only_poi_list
 
@@ -126,6 +148,10 @@ def response_chat_goal(request):
             
             # task manager에서 사용할 상태 테이블 생성
             task_manager.initialize_poi_state_dict(goal_json)
+            
+            #######골 추론 종료 및 장기메모리 db에 저장/단기메모리 초기화
+            # 메모리 저장 및 삭제
+            save_and_clear_cache(robot_id)
         
         print("=============================================")
         print("=============================================")
@@ -149,10 +175,16 @@ async def chat(robot_id: str,request: Request):
     # poi_state_dict를 보고 현재 not_done인 가장 빠른 poi의 정보를 불러오기
     current_poi = task_manager.find_current_poi()
     
-    # current_service_start 생성
-    current_service_start = task_manager.load_current_service_start(current_poi)
+    if current_poi == None:
+        response_data = "Error: No POI"
+        response = json.dumps(response_data, ensure_ascii=False)
+        return response
     
-    return current_service_start
+    else:
+        # current_service_start 생성
+        current_service_start = task_manager.load_current_service_start(current_poi)
+        
+        return current_service_start
 
 
 
@@ -181,7 +213,11 @@ async def chat(robot_id: str,request: Request):
     # robot_id 에 맞는 task_manager 인스턴스 로드
     goal_infer_agent = get_or_create_agent(robot_id)
     goal_infer_agent.restart_service()
+    
+    # 메모리 저장 및 삭제
+    save_and_clear_cache(robot_id)
     print("초기화 요청 완료")
+    
     return {"초기화 돼찌롱 메롱"}
 
 

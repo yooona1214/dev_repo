@@ -10,7 +10,9 @@ import os
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
-def create_vector_store_as_retriever(data, str1, str2):
+def create_vector_store_as_retriever(csv_path, str1, str2):
+    data = CSVLoader(csv_path)
+    data = data.load()
  
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
     docs = text_splitter.split_documents(data)
@@ -41,7 +43,8 @@ def create_vector_store_as_retriever2(csv_path, str1, str2):
     embedding_model = OpenAIEmbeddings(openai_api_key=OPENAI_API_KEY)
     
     # 3. 설명을 임베딩으로 변환
-    descriptions = list(set([item['Description'] for item in data]))
+    descriptions = list(set([item['Name'] for item in data]))
+    # descriptions = list(set([item['Description'] for item in data]))
     duplicates = [description for description in descriptions if descriptions.count(description) > 1]
     print("###########################################중복된 값들:", duplicates)
 
@@ -54,7 +57,7 @@ def create_vector_store_as_retriever2(csv_path, str1, str2):
     
     # 5. 벡터 스토어를 리트리버로 변환
     retriever = vectorstore.as_retriever(search_type='similarity')
-    retriever.search_kwargs = {'k': 30}  # 검색할 상위 k개 결과 설정
+    retriever.search_kwargs = {'k': len(descriptions)}  # 검색할 상위 k개 결과 설정
 
     # 6. LangChain의 retriever_tool 생성
     tool = create_retriever_tool(

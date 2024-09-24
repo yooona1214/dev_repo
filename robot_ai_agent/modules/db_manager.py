@@ -12,7 +12,7 @@ class DBManager:
             'password': 'rbrain!',
             'host': 'localhost'
         }
-        self.target_db = 'raa_db'  # 실제 사용할 데이터베이스 이름
+        self.target_db = 'docentrobot_db'  # 실제 사용할 데이터베이스 이름
         self.filtered_turns = None
 
     def add_turn(self, robot_id, session_id, time_stamp, user_text, agent_text, agent_id):
@@ -22,8 +22,7 @@ class DBManager:
             "time_stamp" : time_stamp,
             "user": user_text,
             "agent": agent_text,
-            "agent_id": agent_id,
-            "timestamp": str(datetime.now())
+            "agent_id": agent_id
         }
         self.redis_client.rpush(robot_id, json.dumps(turn))  # 로봇 ID를 키로 사용하여 리스트에 추가
 
@@ -71,7 +70,7 @@ class DBManager:
                 except Exception as e:
                     print(f"Error closing connection: {e}")
 
-    def save_conversations_to_postgresql(self):
+    def save_conversations_to_postgresql(self, robot_id):
         """Redis 데이터베이스의 대화 내용을 PostgreSQL에 저장하는 함수"""
         conn = None
         cursor = None
@@ -86,30 +85,41 @@ class DBManager:
 
             # 대화 테이블이 존재하지 않으면 생성
             cursor.execute("""
-                CREATE TABLE IF NOT EXISTS conversations (
+                CREATE TABLE IF NOT EXISTS robot_conversations (
                     id SERIAL PRIMARY KEY,
+                    robot_id VARCHAR(255),
                     session_id VARCHAR(255),
-                    user_input TEXT,
-                    agent_response TEXT,
-                    agent_id VARCHAR(255),
-                    timestamp TIMESTAMP
-                )
+                    time_stamp TIMESTAMP,
+                    user_text TEXT,
+                    agent_text TEXT,
+                    agent_id VARCHAR(255)
+                );
             """)
-
+            # "session_id" : session_id,
+            # "time_stamp" : time_stamp,
+            # "user": user_text,
+            # "agent": agent_text,
+            # "agent_id": agent_id
+            
+            
             # 모든 세션 ID 가져오기
-            session_ids = self.redis_client.keys()
-
-            for session_id in session_ids:
-                session_id_str = session_id.decode('utf-8')
-                all_turns = self.redis_client.lrange(session_id, 0, -1)
-
-                for turn in all_turns:
-                    turn_data = json.loads(turn)
-                    cursor.execute("""
-                        INSERT INTO conversations (session_id, user_input, agent_response, agent_id, timestamp)
-                        VALUES (%s, %s, %s, %s, %s)
-                    """, (session_id_str, turn_data['user'], turn_data['agent'], turn_data['agent_id'], turn_data['timestamp']))
-
+            all_turns = self.redis_client.lrange(robot_id, 0, -1)
+            if not all_turns:
+                print(f"Redis에서 '{robot_id}'에 해당하는 데이터가 없습니다.")
+                return
+            
+            for turn in all_turns:
+                turn_data = json.loads(turn)
+                
+                try:
+                    insert_turn_query = """
+                    INSERT INTO robot_conversations (robot_id, session_id, time_stamp, user_text, agent_text, agent_id)
+                    VALUES (%s, %s, %s, %s, %s, %s);
+                    """
+                    cursor.execute(insert_turn_query, (robot_id,turn_data['session_id'], turn_data['time_stamp'], turn_data['user'], turn_data['agent'], turn_data['agent_id']))
+                except Exception as e:
+                    print(f"데이터 삽입 중 오류 발생: {e}")
+                    
             conn.commit()
             print("Redis 데이터가 PostgreSQL에 저장되었습니다.")
 
