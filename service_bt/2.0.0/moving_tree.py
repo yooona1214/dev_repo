@@ -4253,8 +4253,8 @@ def while_moving_par():
     )
     
     bgm_moving = BGMPlay(bgm_name= BGMPlay.BGM_MOVING, play=True, repeat=True)
-    bgm_new = BGMPlay(bgm_name= BGMPlay.BGM_EVENT, play=True, repeat=True)
-    bgm_classic = BGMPlay(bgm_name= BGMPlay.BGM_SURVEILLANCE_EVENT_ALARM, play=True, repeat=True)
+    bgm_new = BGMPlay(bgm_name= "serious_alarm", play=True, repeat=True) # aespa
+    bgm_classic = BGMPlay(bgm_name= "serious_alarm", play=True, repeat=True) # classic
     
     
     BGM_off_fleet = BGMPlay(bgm_name=BGMPlay.BGM_OFF, play=BGMPlay.STOP, repeat = False)
@@ -4716,8 +4716,8 @@ def create_root():
     )
     
     bgm_moving = BGMPlay(bgm_name= BGMPlay.BGM_MOVING, play=True, repeat=True)
-    bgm_new = BGMPlay(bgm_name= BGMPlay.BGM_EVENT, play=True, repeat=True)
-    bgm_classic = BGMPlay(bgm_name= BGMPlay.BGM_SURVEILLANCE_EVENT_ALARM, play=True, repeat=True)
+    bgm_new = BGMPlay(bgm_name= "serious_alarm", play=True, repeat=True) # aespa
+    bgm_classic = BGMPlay(bgm_name= "serious_alarm", play=True, repeat=True) # classic
 
     def request_generate_fn_start_nav():
         req = SetNavGoal.Request()

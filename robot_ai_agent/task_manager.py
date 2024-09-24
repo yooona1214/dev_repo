@@ -75,14 +75,14 @@ class TaskManager:
             poi_arg = poi_arg1 + poi_arg2 + poi_arg3
             
             # 각 POI를 키로 하고, 해당 POI에 대한 설정값을 포함하는 딕셔너리를 생성
-            goal_json[poi_name] = {
+            goal_json[id_value] = {
                 "service_id": poi_arg,  # POI에 대한 서비스 ID
                 "goal_count": 1,  # 기본 goal_count는 1로 설정
                 "task_list": [
                     {
                         "service_code": 103,  # 주어진 service_code
-                        "task_id": 1,  # speed scale 인데 어떻게?
-                        "tray_id": 1,  # 트레이 위치 tray_id는 기본적으로 1로 설정
+                        "task_id": "1",  # speed scale 인데 어떻게?
+                        #"tray_id": 1,  # 트레이 위치 tray_id는 기본적으로 1로 설정
                         "map_id": "1층-융기원-20240905154025",  # map_id 어떻게?
                         "goal_id": id_value,  # goal_id는 현재 POI 이름으로 설정
                         "seq": 0,  # seq는 기본적으로 1로 설정

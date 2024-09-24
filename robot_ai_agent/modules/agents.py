@@ -56,9 +56,11 @@ os.environ["GPT_MODEL"] = "gpt-3.5-turbo"
 # LLM model
 llm_4 = ChatOpenAI(model="gpt-4-0613")
 llm_4_t = ChatOpenAI(model="gpt-4-0125-preview", temperature=0)
-#llm_4_o = ChatOpenAI(model="gpt-4o-mini-2024-07-18")
+llm_4_o_m = ChatOpenAI(model="gpt-4o-mini-2024-07-18")
 llm_4_o = ChatOpenAI(model="gpt-4o-2024-08-06", temperature=0)
-llm_4_o_m = ChatOpenAI(model="gpt-4o-mini")
+llm_o_1 =  ChatOpenAI(model="o1-mini", temperature=0) #o1-mini
+
+# llm_4_o_m = ChatOpenAI(model="gpt-4o-mini")
 llm_3_5 = ChatOpenAI(model="gpt-3.5-turbo-0125")
 
 llm_google = llm_4_t
@@ -127,15 +129,22 @@ class GoalInferenceAgent:
             str2="This is a data containing space or artwork name, position and description for space and artworks.",
         )
 
+        rag_robot_info_ = create_vector_store_as_retriever(
+            csv_path=csv_path2,
+            str1="KT_floor_Information_fot_Docent_Robot",
+            str2="작품 상세정보가 있는 데이터입니다.",
+        )
         # 기존 리트리버 도구들과 함께 tool 리스트에 GraphTool 추가
         #tool_robot_info = [rag_robot_info2, graph_tool]
         
         tool_robot_info = [rag_robot_info]
         
         tool_robot_info2 = [rag_robot_info, graph_tool]
+
+        print(f"tool_robot_info2: {tool_robot_info2}")  # 두 개의 도구가 포함되어 있는지 확인
         
-        
-        
+        tool_robot_info_ = [rag_robot_info_]
+    
         # Agent 0: 일반과 작품설명 분류 에이전트 정의
         intent_agent = create_openai_functions_agent_with_history(
             llm_goal_builder, tool_robot_info, intent_prompt
@@ -146,7 +155,7 @@ class GoalInferenceAgent:
         
         # Agent 1: 채팅 에이전트 정의
         goal_chat_agent = create_openai_functions_agent_with_history(
-            llm_goal_builder, tool_robot_info2, goal_chat_prompt
+            llm_4_o, tool_robot_info2, goal_chat_prompt
         )
         self.goal_chat_executor = AgentExecutor(
             agent=goal_chat_agent, tools=tool_robot_info2, verbose=True
@@ -154,13 +163,13 @@ class GoalInferenceAgent:
 
         # Agent 2: POI 리스트 생성 에이전트 정의
         generate_poi_list_agent = create_openai_functions_agent_with_history_query(
-            llm_goal_builder, tool_robot_info, generate_poi_list_prompt
+            llm_4_o, tool_robot_info_, generate_poi_list_prompt
         )
         self.generate_poi_list_executor = AgentExecutor(
-            agent=generate_poi_list_agent, tools=tool_robot_info, verbose=True
+            agent=generate_poi_list_agent, tools=tool_robot_info_, verbose=True, max_iterations = 5
         )
 
-        # Agent 3: 목표 완료 확인 에이전트 정의
+        # Agent 3: Goal 완료 확인 에이전트 정의
         goal_done_check_agent = create_openai_functions_agent_with_history(
             llm_goal_builder, tool_robot_info, goal_done_check_prompt
         )
@@ -168,7 +177,7 @@ class GoalInferenceAgent:
             agent=goal_done_check_agent, tools=tool_robot_info, verbose=True
         )
         
-        # Agent 3: 목표 완료 확인 에이전트 정의
+        # Agent 4: poi_list 확인 에이전트 정의
         goal_validation_agent = create_openai_functions_agent_with_history(
             llm_goal_builder, tool_robot_info, goal_validation_prompt
         )
@@ -176,7 +185,7 @@ class GoalInferenceAgent:
             agent=goal_validation_agent, tools=tool_robot_info, verbose=True
         )
 
-        # Agent 4: 요약 에이전트 정의
+        # Agent 5: 요약 에이전트 정의
         summary_agent = create_openai_functions_agent_with_history(
             llm_goal_builder, tool_robot_info, goal_summary_prompt
         )
@@ -283,11 +292,10 @@ class GoalInferenceAgent:
 
         return poi_list
 
-    def respond_goal_done_check_agent(self, poi_list, chat_history):
+    def respond_goal_done_check_agent(self, chat_history):
         """목표 완료 확인 에이전트"""
         goal_done = False
         response = self.goal_done_check_executor.invoke({
-            "poi_list": poi_list,
             "chat_history":chat_history
         })
         output_data_string = response['output']
@@ -328,7 +336,7 @@ class GoalInferenceAgent:
             "poi_list": poi_list,
             "chat_history": chat_history
         })
-        print("###respond_summary_agent: ", response)
+        print("###respond_summary_agent: ", response["output"])
         output_data_cleaned = ast.literal_eval(response["output"])
 
 
@@ -351,11 +359,21 @@ class GoalInferenceAgent:
     
     def get_poi_list(self):
         ### 여기서 바꿔주자
-        self.poi_list = ast.literal_eval(self.poi_list)
+        csv_file_path = './robot_info/floor_description.csv'
+        df = pd.read_csv(csv_file_path)  
+           
+        self.poi_list = ast.literal_eval(self.poi_list)       
+        
+        real_poi_list = []
+        for sublist in list(self.poi_list):
+            key_to_find = sublist[0]
+            matching_row = df[df['Name'] == key_to_find]
+            id_value = matching_row.iloc[0]['ID']
+            real_poi_list.append(id_value)
+            
         goal_json_poi_list = self.poi_list
-        only_poi_list = [sublist[0] for sublist in list(self.poi_list)]
-        print(goal_json_poi_list, only_poi_list)
-        return goal_json_poi_list, only_poi_list
+        print(goal_json_poi_list, real_poi_list)
+        return goal_json_poi_list, real_poi_list
         
     def route(self, user_input, robot_x, robot_y, session_id):
         print("****************************************************")
@@ -402,49 +420,44 @@ class GoalInferenceAgent:
                 
                 print("111111111111111111111111111111111111111111111111111111111111111111111")
                 # 채팅 응답을 반환하고 다음 에이전트로 넘어감
-                self.current_agent = "generate_poi_list_agent"
+                self.current_agent = "goal_done_check_agent"
             
             # 2. POI 리스트 생성 에이전트 실행
+            if self.current_agent == "goal_done_check_agent":
+                
+                # 채팅 에이전트가 남긴 챗 히스토리 다시 로드
+                self.chat_history = self.db_manager.get_conversation_history(self.robot_id, session_id)  
+                goal_done = self.respond_goal_done_check_agent(self.chat_history)
+                print("22222222222222222222222222222222222222222222222222222222222222222222222")
+                
+                
+                if goal_done:
+                    # 목표가 완료되었으면 Summary 에이전트로 이동
+                    print("GOAL DONE: TRUE")                  
+                    self.current_agent = "generate_poi_list_agent"
+               
+                else:
+                    # 목표가 완료되지 않았으면 해당 기록 저장하고 다시 채팅 에이전트로 돌아감
+                    print("GOAL DONE: FALSE")
+                    # 에이전트 응답 결과 저장
+                    time_stamp = str(datetime.now())
+                    self.db_manager.add_turn(self.robot_id, self.session_id,time_stamp, user_input, goal_done, self.current_agent)                    
+                    # 채팅에이전트로 라우팅
+                    self.current_agent = "goal_chat_agent"
+                    intent = 1
+                    return self.current_agent , respond_goal_chat, intent  # 서버로 채팅 응답 전송 후 루프 계속
+            
+            # 3. POI 리스트 생성 에이전트 실행
             if self.current_agent == "generate_poi_list_agent":
                 
                 # 채팅 에이전트가 남긴 챗 히스토리 다시 로드
                 self.chat_history = self.db_manager.get_conversation_history(self.robot_id, session_id)  
                 self.poi_list = self.respond_generate_poi_list_agent(self.ro_x, self.ro_y, self.chat_history)
                 print("22222222222222222222222222222222222222222222222222222222222222222222222")
-                # 목표 완료 확인 에이전트로 넘어감
-                self.current_agent = "goal_done_check_agent"
-
-            # 3. 목표 완료 확인 에이전트 실행
-            if self.current_agent == "goal_done_check_agent":
-                # poi 리스트 생성 에이전트가 남긴 챗 히스토리 다시 로드
-                self.chat_history = self.db_manager.get_conversation_history(self.robot_id, session_id)  
-                goal_done = self.respond_goal_done_check_agent(self.poi_list, self.chat_history)
-
-                print("33333333333333333333333333333333333333333333333333333333333")
- 
+                # validation하고 서머리 에이전트로 넘어감
+                self.poi_list = self.response_goal_validation_agent(self.poi_list, self.chat_history) 
+                self.current_agent = "summary_agent"
                 
-
-                if goal_done:
-                    # 목표가 완료되었으면 Summary 에이전트로 이동
-                    self.chat_history = self.db_manager.get_conversation_history(self.robot_id, session_id)  
-                    self.poi_list = self.response_goal_validation_agent(self.poi_list, self.chat_history)                    
-                    self.current_agent = "summary_agent"
-                    print("GOAL DONE: TRUE")
-                    print("44444444444444444444444444444444444444444444444444444444444444444444")
-                    
-                else:
-                    # 목표가 완료되지 않았으면 해당 기록 저장하고 다시 채팅 에이전트로 돌아감
-                    # 에이전트 응답 결과 저장
-                    time_stamp = str(datetime.now())
-                    self.db_manager.add_turn(self.robot_id, self.session_id,time_stamp, user_input, goal_done, self.current_agent)
-                    print("55555555555555555555555555555555555555555555555555555555555555")
-                    
-                    # 채팅에이전트로 라우팅
-                    self.current_agent = "goal_chat_agent"
-                    print("GOAL DONE: FALSE")
-                    intent = 1
-                    return self.current_agent , respond_goal_chat, intent  # 서버로 채팅 응답 전송 후 루프 계속
-
         # 4. Summary 에이전트 실행 (목표 완료 후)
         if self.current_agent == "summary_agent":
             self.chat_history = self.db_manager.get_conversation_history(self.robot_id, session_id)
@@ -524,7 +537,7 @@ class ReplanningAgent:
         )
 
         # RAG
-        rag_robot_info2 = create_vector_store_as_retriever2(
+        rag_robot_info2 = create_vector_store_as_retriever(
             csv_path=csv_path2,
             str1="KT_floor_Information_fot_Docent_Robot",
             str2="This is a data containing space or artwork name, position and description for space and artworks.",

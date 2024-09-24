@@ -16,7 +16,6 @@ from langchain.tools.render import render_text_description
 
 
 
-
 def create_react_agent_w_history(
     llm: BaseLanguageModel, tools: Sequence[BaseTool], prompt: BasePromptTemplate
 ) -> Runnable:
@@ -197,9 +196,21 @@ def create_openai_functions_agent_with_history(
             "Prompt must have input variable `agent_scratchpad`, but wasn't found. "
             f"Found {prompt.input_variables} instead."
         )
+    '''
     llm_with_tools = llm.bind(
         functions=[format_tool_to_openai_function(t) for t in tools]
     )
+    '''
+    from langchain_core.utils.function_calling import convert_to_openai_function
+    
+    tools_list = [convert_to_openai_function(t) for t in tools]
+    print("####################Formatted Tools:", tools_list)  # 도구 목록 출력
+    llm_with_tools = llm.bind(functions=tools_list)
+
+    print(f"Prompt being passed: {prompt}")
+    print(f"LLM with Tools being used: {llm_with_tools}")
+
+
     agent = (
         RunnablePassthrough.assign(
             agent_scratchpad=lambda x: format_to_openai_function_messages(
