@@ -128,6 +128,7 @@ def response_chat_goal(request):
         return "인스턴스, 레디스 초기화", 0 , []
     else:
         # 골 추론 에이전트 
+        print("INPUT: ", user_input)
         agent_id, agent_response, intent = goal_infer_agent.route(user_input,robot_x, robot_y, session_id)
         
         if intent != 3:
