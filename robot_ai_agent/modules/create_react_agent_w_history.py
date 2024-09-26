@@ -13,6 +13,7 @@ from langchain.tools.render import render_text_description
 
 
 
+from langchain_core.utils.function_calling import convert_to_openai_function
 
 
 
@@ -201,14 +202,13 @@ def create_openai_functions_agent_with_history(
         functions=[format_tool_to_openai_function(t) for t in tools]
     )
     '''
-    from langchain_core.utils.function_calling import convert_to_openai_function
     
     tools_list = [convert_to_openai_function(t) for t in tools]
-    print("####################Formatted Tools:", tools_list)  # 도구 목록 출력
+    # print("####################Formatted Tools:", tools_list)  # 도구 목록 출력
     llm_with_tools = llm.bind(functions=tools_list)
 
-    print(f"Prompt being passed: {prompt}")
-    print(f"LLM with Tools being used: {llm_with_tools}")
+    # print(f"Prompt being passed: {prompt}")
+    # print(f"LLM with Tools being used: {llm_with_tools}")
 
 
     agent = (
@@ -321,7 +321,7 @@ def create_openai_functions_agent_with_history_query(
         )
 
     llm_with_tools = llm.bind(
-        functions=[format_tool_to_openai_function(t) for t in tools]
+        functions=[convert_to_openai_function(t) for t in tools]
     )
 
     # 쿼리 결과를 캐시할 딕셔너리
