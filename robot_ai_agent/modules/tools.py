@@ -67,3 +67,6 @@ def create_vector_store_as_retriever2(csv_path, str1, str2):
     )
 
     return tool
+
+
+
