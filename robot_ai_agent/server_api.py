@@ -17,6 +17,7 @@ from dotenv import load_dotenv
 
 from task_manager import *
 from modules.agents import *
+from modules.agents_studay import *
 from modules.router import *
 from modules.db_manager import *
 
@@ -267,3 +268,42 @@ def response_replanning_agent(request):
     replanning_agent =  ReplanningAgent.get_instance(robot_id, dbmanager, GOAL_JSON_PATH)
     session_id = replanning_agent.check_new_service(robot_id)
     replanning_agent.route(user_input, previous_poi_list, robot_x, robot_y, session_id)
+    
+    
+############################################################################################################
+# 스투데이용 엔드포인트
+@app.post("/studay")
+async def chat(request: Request, background_tasks: BackgroundTasks):
+    """post"""
+
+    robotrequest = await request.json()
+    
+    background_tasks.add_task(response_studay, request=robotrequest)
+
+    return {"version": "2.0", "useCallback": True}
+
+agent = LLMagent()
+agent.load_all()
+
+def response_studay(request):
+    
+    """콜백 기반 LLM 응답"""
+
+    # 카톡 내용 파싱
+    user_id = request["userRequest"]["user"]["id"]
+    message = request["userRequest"]["utterance"]
+    callback_url = request["userRequest"]["callbackUrl"]
+
+    print("USER: ", user_id, "\nMESSAGE: ",message, "\n URL: ", callback_url)
+
+    response = agent.identify_user(user_id, message)
+    
+    print("RESPONSE: ", response)
+    res_kakao = {
+        "version": "2.0",
+        "template": {"outputs": [{"simpleText": {"text": response}}]},
+    }
+    
+    response = requests.post(url=callback_url, json=res_kakao, timeout=15)
+    return response
+

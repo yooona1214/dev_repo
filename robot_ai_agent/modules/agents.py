@@ -30,11 +30,11 @@ from langchain_community.chains.graph_qa.cypher_utils import CypherQueryCorrecto
 from langchain_openai import ChatOpenAI
 from langchain_community.graphs import Neo4jGraph
 from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain.pydantic_v1 import BaseModel
 from langchain.schema.output_parser import StrOutputParser
 from langchain.schema.runnable import RunnablePassthrough
 from typing import Type
 from langchain.tools import BaseTool
+
 
 # Redis 클라이언트 생성
 redis_client = redis.Redis(host="localhost", port=6379, db=0)
@@ -71,12 +71,13 @@ llm_summary = llm_4_t
 # path
 csv_path2 = pkg_resources.files("robot_info").joinpath("floor_description_240912.csv")
 
-# Graph
-graph = Neo4jGraph(
-                url="bolt://54.235.226.49:7687",  
-                username="neo4j",  
-                password="spool-race-odds"
-            )
+###### GRAPH TOOL 주석 처리
+# # Graph
+# graph = Neo4jGraph(
+#                 url="bolt://54.235.226.49:7687",  
+#                 username="neo4j",  
+#                 password="spool-race-odds"
+#             )
 
 
 class GoalInferenceAgent:
@@ -103,23 +104,23 @@ class GoalInferenceAgent:
             goal_builder_prompt | llm_goal_builder | StrOutputParser()
         )
 
-        
-        # Graph 체인
+    ###### GRAPH TOOL 주석 처리
+    #     # Graph 체인
 
-        self.chain_test = GraphCypherQAChain.from_llm(
-        llm_4_o,
-        graph=graph,
-        verbose=True,
-        prompt = cypher_generation_prompt
-       )
+    #     self.chain_test = GraphCypherQAChain.from_llm(
+    #     llm_4_o,
+    #     graph=graph,
+    #     verbose=True,
+    #     prompt = cypher_generation_prompt
+    #    )
 
-        graph_tool = Tool(
-        name="Graph",
-        func=self.execute_graph_query,
-        description="""KT 연구소에 대한 공간 정보들을 Graph DB화 한 데이터 입니다. 
-        사용자의 발화에 맞게 정보를 검색한 후 검색한 결과를 바탕으로 자연어기반 답변을 생성합니다.
-        """
-        )
+    #     graph_tool = Tool(
+    #     name="Graph",
+    #     func=self.execute_graph_query,
+    #     description="""KT 연구소에 대한 공간 정보들을 Graph DB화 한 데이터 입니다. 
+    #     사용자의 발화에 맞게 정보를 검색한 후 검색한 결과를 바탕으로 자연어기반 답변을 생성합니다.
+    #     """
+    #     )
         
         # Agent 1: 대화 및 csv를 통한 list 생성, tool 사용 에이전트 버전
         
@@ -139,7 +140,8 @@ class GoalInferenceAgent:
         
         tool_robot_info = [rag_robot_info]
         
-        tool_robot_info2 = [rag_robot_info, graph_tool]
+        ###### GRAPH TOOL 주석 처리
+        # tool_robot_info2 = [rag_robot_info, graph_tool]
 
         # print(f"tool_robot_info2: {tool_robot_info2}")  # 두 개의 도구가 포함되어 있는지 확인
         
@@ -153,12 +155,13 @@ class GoalInferenceAgent:
             agent=intent_agent, tools=tool_robot_info, verbose=True
         )
         
+        ######## GRAPH TOOL 주석 처리 tools = tool_robot_info2 임 원래
         # Agent 1: 채팅 에이전트 정의
         goal_chat_agent = create_openai_functions_agent_with_history(
-            llm_4_o, tool_robot_info2, goal_chat_prompt
+            llm_4_o, tool_robot_info, goal_chat_prompt
         )
         self.goal_chat_executor = AgentExecutor(
-            agent=goal_chat_agent, tools=tool_robot_info2, verbose=True
+            agent=goal_chat_agent, tools=tool_robot_info, verbose=True
         )
 
         # Agent 2: POI 리스트 생성 에이전트 정의
@@ -899,3 +902,4 @@ class ReplanningAgent:
                     time_stamp = str(datetime.now())
                     self.db_manager.add_turn(self.robot_id, self.session_id,time_stamp, user_input, goal_done, self.current_agent)
                     return self.current_agent, respond_goal_chat, intent  # intent = 3: 안내 시작
+                
