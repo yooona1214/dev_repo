@@ -48,8 +48,7 @@ SERPER_API_KEY = os.getenv("SERPER_API_KEY")
 # os.environ["LANGCHAIN_TRACING_V2"] = "true"
 # os.environ["LANGCHAIN_PROJECT"] = "Robot AI Agent"
 # os.environ["LANGCHAIN_ENDPOINT"] = "https://api.smith.langchain.com"
-os.environ["LANGCHAIN_API_KEY"] = (
-    "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"  # yooona
+os.environ["LANGCHAIN_API_KEY"] = ( # yooona
 )
 os.environ["GPT_MODEL"] = "gpt-3.5-turbo"
 
