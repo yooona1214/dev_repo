@@ -12,12 +12,12 @@ import pandas as pd
 from langchain_experimental.agents import create_pandas_dataframe_agent
 from langchain_experimental.tools import PythonAstREPLTool
 from langchain.tools.retriever import create_retriever_tool
-OPENAI_API_KEY = 'sk-proj-4ebppYSwaJFfWxESdsOcT3BlbkFJ3RMHQxQlSkuBZ07ZX2Xe'
+OPENAI_API_KEY = ''
 os.environ["SERPER_API_KEY"] = ("d8e1922de1a749051dfaf37d7c38990df9c791a5")
 #os.environ["LANGCHAIN_TRACING_V2"] = "true"
 #os.environ["LANGCHAIN_PROJECT"] = "Multi-agent Collaboration"
 #os.environ["LANGCHAIN_ENDPOINT"] = "https://api.smith.langchain.com"
-#os.environ["LANGCHAIN_API_KEY"] = "ls__3b0b4639413547b1992222420ad58d30"  # Update to your API key
+#os.environ["LANGCHAIN_API_KEY"] =  # Update to your API key
 print("필요한 파일을 불러오는중...")
 loader1 = PyPDFDirectoryLoader('./data')
 data1 = loader1.load()
