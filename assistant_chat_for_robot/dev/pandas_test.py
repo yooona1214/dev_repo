@@ -8,7 +8,7 @@ from langchain.agents import AgentType
 from langchain_openai import ChatOpenAI
 
 # openai 설정
-OPENAI_API_KEY='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'
+OPENAI_API_KEY=''
 os.environ["OPENAI_API_KEY"] = OPENAI_API_KEY
 # df
 df = pd.read_csv('./data/LG0313.csv')
