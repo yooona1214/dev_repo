@@ -36,7 +36,6 @@ from langchain_experimental.agents import create_pandas_dataframe_agent
 
 import pika
 
-OPENAI_API_KEY = "***REMOVED***"
 
 # RabbitMQ 연동 위한 채널 큐 설정
 HOST_NAME = "localhost"
