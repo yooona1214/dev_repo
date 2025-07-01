@@ -38,8 +38,6 @@ from langchain_experimental.agents import create_pandas_dataframe_agent
 
 
 
-OPENAI_API_KEY = "sk-proj-4ebppYSwaJFfWxESdsOcT3BlbkFJ3RMHQxQlSkuBZ07ZX2Xe"
-
 # LangSmith 추적 기능을 활성화합니다. (선택적)
 # os.environ["LANGCHAIN_TRACING_V2"] = "true"
 # os.environ["LANGCHAIN_PROJECT"] = "Multi-agent Collaboration"
