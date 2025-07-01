@@ -13,14 +13,14 @@ from langchain_experimental.agents import create_pandas_dataframe_agent
 from langchain_experimental.tools import PythonAstREPLTool
 from langchain.tools.retriever import create_retriever_tool
 
-OPENAI_API_KEY='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'
+OPENAI_API_KEY=''
 
 #unique_id = uuid4().hex[0:8]
 # LangSmith 추적 기능을 활성화합니다. (선택적)
 os.environ["LANGCHAIN_TRACING_V2"] = "true"
 os.environ["LANGCHAIN_PROJECT"] = "Multi-agent Collaboration"
 os.environ["LANGCHAIN_ENDPOINT"] = "https://api.smith.langchain.com"
-os.environ["LANGCHAIN_API_KEY"] = "ls__3b0b4639413547b1992222420ad58d30"  # Update to your API key
+os.environ["LANGCHAIN_API_KEY"] = ""  # Update to your API key
 
 
 
