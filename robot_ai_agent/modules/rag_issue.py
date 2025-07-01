@@ -6,7 +6,6 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import Chroma
 from langchain.vectorstores import utils
 
-OPENAI_API_KEY = "***REMOVED***"
 
 class CreateVectorstore:
 
