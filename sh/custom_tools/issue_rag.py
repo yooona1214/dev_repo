@@ -6,7 +6,7 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 
 from langchain.vectorstores import Chroma
 from langchain.vectorstores import utils
-OPENAI_API_KEY='sk-proj-4ebppYSwaJFfWxESdsOcT3BlbkFJ3RMHQxQlSkuBZ07ZX2Xe'
+
 def create_vector_store_as_retriever(data, str1, str2):
     text_splitter = RecursiveCharacterTextSplitter(chunk_size = 1000, chunk_overlap = 0)
     docs = text_splitter.split_documents(data)
