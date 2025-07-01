@@ -22,8 +22,6 @@ from langchain.agents import AgentExecutor
 from langchain.memory import ConversationBufferMemory
 import re
 # OpenAI API KEY
-API_KEY = "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"
-
 
 class Loader_Rag:
     def __init__(self):
