@@ -7,7 +7,6 @@ from langchain.vectorstores.chroma import Chroma
 from langchain.vectorstores.faiss import FAISS
 from langchain.vectorstores import utils
 
-OPENAI_API_KEY = "***REMOVED***"
 
 
 class CreateVectorstore:
