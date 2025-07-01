@@ -1,13 +1,13 @@
 # API KEY를 환경변수로 관리하기 위한 설정 파일
 import os
 os.environ["OPENAI_API_KEY"] = (
-    "sk-proj-4ebppYSwaJFfWxESdsOcT3BlbkFJ3RMHQxQlSkuBZ07ZX2Xe"  # set with yours
+   # set with yours
 )
 OPENAI_API_KEY = "sk-proj-4ebppYSwaJFfWxESdsOcT3BlbkFJ3RMHQxQlSkuBZ07ZX2Xe"
 os.environ["LANGCHAIN_TRACING_V2"] = "true"
 os.environ["LANGCHAIN_PROJECT"] = "Multi-agent Collaboration"
 os.environ["LANGCHAIN_ENDPOINT"] = "https://api.smith.langchain.com"
-os.environ["LANGCHAIN_API_KEY"] = "ls__3b0b4639413547b1992222420ad58d30"  # Update to your API key
+os.environ["LANGCHAIN_API_KEY"] =  # Update to your API key
 
 #from openai import OpenAI
 from langchain_openai import ChatOpenAI
