@@ -70,14 +70,14 @@ from langchain_experimental.tools import PythonAstREPLTool
 from langchain.tools.retriever import create_retriever_tool
 
 # 환경 변수 설정
-os.environ["OPENAI_API_KEY"] = "sk-proj-4ebppYSwaJFfWxESdsOcT3BlbkFJ3RMHQxQlSkuBZ07ZX2Xe"
+os.environ["OPENAI_API_KEY"] = "sk-proj-"
 os.environ["LANGCHAIN_TRACING_V2"] = "true"
 os.environ["LANGCHAIN_PROJECT"] = "Multi-agent Collaboration"
 os.environ["LANGCHAIN_ENDPOINT"] = "https://api.smith.langchain.com"
 os.environ["LANGCHAIN_API_KEY"] = "ls__3b0b4639413547b1992222420ad58d30"
 os.environ["GPT_MODEL"] = "gpt-4o"
 
-OPENAI_API_KEY = 'sk-proj-4ebppYSwaJFfWxESdsOcT3BlbkFJ3RMHQxQlSkuBZ07ZX2Xe'
+OPENAI_API_KEY = 'sk-proj-'
 llm_4_o = ChatOpenAI(model="gpt-4o", api_key=OPENAI_API_KEY, temperature=0)
 
 llm_model = llm_4_o

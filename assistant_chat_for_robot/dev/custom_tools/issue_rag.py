@@ -6,7 +6,7 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores.chroma import Chroma
 from langchain.vectorstores import utils
 
-OPENAI_API_KEY='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'
+OPENAI_API_KEY='sk-'
 
 
 def create_vector_store_as_retriever(data, str1, str2):

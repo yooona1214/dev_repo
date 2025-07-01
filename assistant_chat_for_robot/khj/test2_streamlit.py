@@ -8,7 +8,7 @@ import streamlit as st
 import time
 import openai
 
-openai.api_key = "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"
+openai.api_key = "sk-"
 # loader = WebBaseLoader("https://dalpha.so/ko/howtouse?scrollTo=custom")
 # data = loader.load()
 

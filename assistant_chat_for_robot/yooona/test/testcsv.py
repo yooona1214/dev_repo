@@ -22,7 +22,7 @@ from langchain.prompts import MessagesPlaceholder
 from langchain.agents import AgentExecutor
 
 
-OPENAI_API_KEY = "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"
+OPENAI_API_KEY = "sk-"
 def main():
     print("csv를 불러오는중...")
     # loader1 = PyPDFLoader("./data/LG1세대[FnB2.0]_사용자매뉴얼.pdf")

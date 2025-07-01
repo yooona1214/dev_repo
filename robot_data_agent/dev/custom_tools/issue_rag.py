@@ -7,7 +7,7 @@ from langchain.vectorstores.chroma import Chroma
 from langchain.vectorstores.faiss import FAISS
 from langchain.vectorstores import utils
 
-OPENAI_API_KEY = "sk-proj-4ebppYSwaJFfWxESdsOcT3BlbkFJ3RMHQxQlSkuBZ07ZX2Xe"
+OPENAI_API_KEY = "sk-proj-"
 
 
 class CreateVectorstore:

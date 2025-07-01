@@ -129,7 +129,7 @@ if prompt := st.chat_input("What is up?"):
 
 import openai
 
-openai.api_key = "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"
+openai.api_key = "sk-"
 
 #Use the following pieces of context to answer the users question. If you don't know the answer, just say that you don't know, don't try to make up an answer.
 #"마지막으로 고객이 맞다고 하면, 너는 프롬프트를 이용해 제공된 설명서(context) 내용을 기반으로 답변하는 거야, 일반적인 상황 또는 다른 로봇에 대해서 답변할 필요 없어, 메뉴얼에 나온 로봇만 취급하니까"

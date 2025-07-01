@@ -21,7 +21,7 @@ from langchain.callbacks.manager import (
 )
 import pandas as pd
 
-OPENAI_API_KEY='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'
+OPENAI_API_KEY='sk-'
 
 unique_id = uuid4().hex[0:8]
 # LangSmith 추적 기능을 활성화합니다. (선택적)

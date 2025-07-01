@@ -16,7 +16,7 @@ from htmlTemplates import css, bot_template, user_template
 import os
 
 
-OPENAI_API_KEY = "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"
+OPENAI_API_KEY = "sk"
 
 CONDENSEprompt = """
 
