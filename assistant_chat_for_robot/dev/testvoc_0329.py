@@ -25,7 +25,7 @@ from langchain_experimental.agents import create_pandas_dataframe_agent
 
 
 
-OPENAI_API_KEY='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'
+OPENAI_API_KEY=''
 
 #unique_id = uuid4().hex[0:8]
 # LangSmith 추적 기능을 활성화합니다. (선택적)
