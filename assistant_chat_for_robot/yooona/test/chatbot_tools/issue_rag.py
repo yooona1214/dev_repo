@@ -8,7 +8,7 @@ from langchain.vectorstores.chroma import Chroma
 from langchain.vectorstores import utils as chromautils
 
 
-OPENAI_API_KEY='***REMOVED***'
+OPENAI_API_KEY='sk-'
 
 
 def create_vector_store_as_retriever(data, str1, str2):

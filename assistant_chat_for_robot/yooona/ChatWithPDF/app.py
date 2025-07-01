@@ -16,7 +16,7 @@ from htmlTemplates import css, bot_template, user_template
 import os
 
 
-OPENAI_API_KEY = "***REMOVED***"
+OPENAI_API_KEY = "sk"
 
 CONDENSEprompt = """
 

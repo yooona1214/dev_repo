@@ -36,7 +36,7 @@ from loader import Loader
 loader_mem = Loader()
 
 # OpenAI API KEY
-API_KEY = "***REMOVED***"
+API_KEY = "sk-"
 # client = openai.OpenAI(api_key = API_KEY)
 
 # Thread 락

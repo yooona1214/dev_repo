@@ -48,7 +48,7 @@ if FLAG_VOC:
     loader_mem.load_all()
 
 # OpenAI API KEY
-API_KEY = "***REMOVED***"
+API_KEY = "sk-"
 # client = openai.OpenAI(api_key = API_KEY)
 
 

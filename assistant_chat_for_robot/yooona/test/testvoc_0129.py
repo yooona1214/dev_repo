@@ -31,7 +31,7 @@ from langchain.chains import LLMChain
 
 #dotenv.load_dotenv()
 
-OPENAI_API_KEY='***REMOVED***'
+OPENAI_API_KEY='sk-'
 
 def main():
     print("필요한 파일을 불러오는중...")

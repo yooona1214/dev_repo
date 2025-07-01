@@ -12,7 +12,7 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores.chroma import Chroma
 from langchain_core.output_parsers import StrOutputParser
 
-OPENAI_API_KEY='***REMOVED***'
+OPENAI_API_KEY='sk-'
 
 def preprocess_csv(issue_value, csv_path):
 

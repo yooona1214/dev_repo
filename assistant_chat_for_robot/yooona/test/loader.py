@@ -23,7 +23,7 @@ from langchain.memory import ConversationBufferMemory
 
 
 # OpenAI API KEY
-API_KEY = "***REMOVED***"
+API_KEY = "sk"
 
 
 class Loader:
