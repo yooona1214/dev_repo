@@ -31,14 +31,13 @@ import pandas as pd
 from langchain_experimental.agents import create_pandas_dataframe_agent
 
 
-OPENAI_API_KEY = "sk-proj-4ebppYSwaJFfWxESdsOcT3BlbkFJ3RMHQxQlSkuBZ07ZX2Xe"
 
 # LangSmith 추적 기능을 활성화합니다. (선택적)
 os.environ["LANGCHAIN_TRACING_V2"] = "true"
 os.environ["LANGCHAIN_PROJECT"] = "Multi-agent Collaboration"
 os.environ["LANGCHAIN_ENDPOINT"] = "https://api.smith.langchain.com"
 os.environ["LANGCHAIN_API_KEY"] = (
-    "ls__3b0b4639413547b1992222420ad58d30"  # Update to your API key
+   # Update to your API key
 )
 
 # RabbitMQ 연동 위한 채널 큐 설정
