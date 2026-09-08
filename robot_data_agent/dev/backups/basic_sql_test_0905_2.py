@@ -2,9 +2,7 @@ import os
 import re
 
 # setup OpenAI API Key with yours
-os.environ["OPENAI_API_KEY"] = (
-    "***REMOVED***"  # set with yours
-)
+os.environ.setdefault("OPENAI_API_KEY", os.getenv("OPENAI_API_KEY", ""))  # set via environment
 
 # Connect to the PostgreSQL DB
 from langchain_community.utilities import SQLDatabase
@@ -28,7 +26,7 @@ def run_query(query):
     return db.run(query)
 
 # Prompt for generating a SQL query
-from langchain.prompts import ChatPromptTemplate
+from langchain_classic.prompts import ChatPromptTemplate
 
 template_query = """
 Based on the table schema below, 

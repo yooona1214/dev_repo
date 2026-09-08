@@ -27,7 +27,7 @@ from custom_prompts.prompts import (
 )
 from langchain_community.document_loaders.csv_loader import CSVLoader
 from langchain_community.document_loaders.pdf import PyPDFLoader
-from langchain.agents import AgentExecutor, AgentType
+from langchain_classic.agents import AgentExecutor, AgentType
 from langchain_openai import ChatOpenAI
 from langchain_anthropic import ChatAnthropic
 
@@ -37,7 +37,7 @@ import pandas as pd
 from langchain_experimental.agents import create_pandas_dataframe_agent
 
 
-OPENAI_API_KEY = "***REMOVED***"
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")  # set via environment
 
 # LangSmith 추적 기능을 활성화합니다. (선택적)
 os.environ["LANGCHAIN_TRACING_V2"] = "true"

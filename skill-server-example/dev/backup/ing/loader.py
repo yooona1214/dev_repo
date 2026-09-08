@@ -1,25 +1,25 @@
-from langchain.document_loaders import WebBaseLoader
-from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_classic.document_loaders import WebBaseLoader
+from langchain_classic.text_splitter import RecursiveCharacterTextSplitter
 
-from langchain.vectorstores.chroma import Chroma
+from langchain_classic.vectorstores.chroma import Chroma
 import streamlit as st
 import time
-from langchain.document_loaders import PyPDFLoader, CSVLoader
-from langchain.docstore.document import Document
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.embeddings import OpenAIEmbeddings
-from langchain.agents.agent_toolkits import create_retriever_tool
-from langchain.chat_models import ChatOpenAI
-from langchain.agents.openai_functions_agent.agent_token_buffer_memory import (
+from langchain_classic.document_loaders import PyPDFLoader, CSVLoader
+from langchain_classic.docstore.document import Document
+from langchain_classic.text_splitter import RecursiveCharacterTextSplitter
+from langchain_classic.embeddings import OpenAIEmbeddings
+from langchain_classic.agents.agent_toolkits import create_retriever_tool
+from langchain_openai import ChatOpenAI
+from langchain_classic.agents.openai_functions_agent.agent_token_buffer_memory import (
     AgentTokenBufferMemory,
 )
 
-from langchain.agents.openai_functions_agent.base import OpenAIFunctionsAgent
-from langchain.agents.conversational_chat.base import ConversationalChatAgent
-from langchain.schema.messages import SystemMessage
-from langchain.prompts import MessagesPlaceholder
-from langchain.agents import AgentExecutor
-from langchain.memory import ConversationBufferMemory
+from langchain_classic.agents.openai_functions_agent.base import OpenAIFunctionsAgent
+from langchain_classic.agents.conversational_chat.base import ConversationalChatAgent
+from langchain_classic.schema.messages import SystemMessage
+from langchain_classic.prompts import MessagesPlaceholder
+from langchain_classic.agents import AgentExecutor
+from langchain_classic.memory import ConversationBufferMemory
 import re
 # OpenAI API KEY
 
@@ -253,7 +253,7 @@ class Loader_Voc:
 
 
         #memory = AgentTokenBufferMemory(memory_key="chat_history", llm=llm, return_messages=True, max_token_limit=2048)
-        from langchain.memory import ConversationBufferMemory
+        from langchain_classic.memory import ConversationBufferMemory
 
         memory = ConversationBufferMemory(memory_key='chat_history', 
                                             return_messages=True,
@@ -268,7 +268,7 @@ class Loader_Voc:
                         model="gpt-3.5-turbo", api_key=API_KEY)
 
 
-        from langchain.agents.openai_functions_agent.base import OpenAIFunctionsAgent, create_openai_functions_agent
+        from langchain_classic.agents.openai_functions_agent.base import OpenAIFunctionsAgent, create_openai_functions_agent
 
         prompt = OpenAIFunctionsAgent.create_prompt(
             system_message=system_message,

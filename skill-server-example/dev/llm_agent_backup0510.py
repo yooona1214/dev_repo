@@ -29,7 +29,7 @@ from custom_prompts.prompts_error import (
 )
 from langchain_community.document_loaders.csv_loader import CSVLoader
 from langchain_community.document_loaders.pdf import PyPDFLoader
-from langchain.agents import AgentExecutor, AgentType
+from langchain_classic.agents import AgentExecutor, AgentType
 from langchain_openai import ChatOpenAI
 from langchain_anthropic import ChatAnthropic
 

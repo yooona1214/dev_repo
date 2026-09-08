@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 
 from langchain_openai import ChatOpenAI
 from langchain_community.utilities import GoogleSerperAPIWrapper
-from langchain.agents import Tool, AgentExecutor
+from langchain_classic.agents import Tool, AgentExecutor
 from langchain_core.messages import AIMessage, HumanMessage
 from langchain_core.prompts import PromptTemplate
 from langchain_community.tools.google_serper.tool import GoogleSerperRun
@@ -21,7 +21,7 @@ from modules.agents import *
 from modules.router import *
 from modules.db_manager import *
 
-from langchain.chains.graph_qa.cypher import GraphCypherQAChain
+from langchain_classic.chains.graph_qa.cypher import GraphCypherQAChain
 from langchain_community.graphs import Neo4jGraph
 
 from langchain_community.agent_toolkits.load_tools import load_tools
@@ -81,7 +81,7 @@ atexit.register(dbmanger.clear_redis_cache)
 def load_all():
     from langchain_community.document_loaders.csv_loader import CSVLoader
     from langchain_community.document_loaders.pdf import PyPDFLoader
-    from langchain.agents import AgentExecutor, AgentType
+    from langchain_classic.agents import AgentExecutor, AgentType
     from langchain_openai import ChatOpenAI
     from custom_tools.issue_rag import (
         CreateVectorstore,

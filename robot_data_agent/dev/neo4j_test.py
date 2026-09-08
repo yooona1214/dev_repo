@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 load_dotenv()
 API_KEY = os.getenv("OPENAI_API_KEY")
 
-from langchain.chains.graph_qa.cypher import GraphCypherQAChain
+from langchain_classic.chains.graph_qa.cypher import GraphCypherQAChain
 from langchain_community.graphs import Neo4jGraph
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import AIMessage, HumanMessage

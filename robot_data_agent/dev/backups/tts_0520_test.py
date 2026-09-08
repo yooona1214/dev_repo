@@ -1,6 +1,6 @@
 import os
 from langchain_community.utilities.sql_database import SQLDatabase
-from langchain.chains.sql_database.query import create_sql_query_chain
+from langchain_classic.chains.sql_database.query import create_sql_query_chain
 
 from langchain_openai import ChatOpenAI
 from langchain_community.tools.sql_database.tool import QuerySQLDataBaseTool
@@ -18,9 +18,7 @@ from langchain_openai import OpenAIEmbeddings
 
 
 # setup OpenAI API Key with yours
-os.environ["OPENAI_API_KEY"] = (
-    "***REMOVED***"  # set with yours
-)
+os.environ.setdefault("OPENAI_API_KEY", os.getenv("OPENAI_API_KEY", ""))  # set via environment
 
 # Connect to the PostgreSQL DB
 username = "postgres"

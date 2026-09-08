@@ -11,7 +11,7 @@ os.environ["GPT_MODEL"] = "gpt-3.5-turbo"
 
 # Neo4j 연결 정보 설정
 
-from langchain.chains.graph_qa.cypher import GraphCypherQAChain
+from langchain_classic.chains.graph_qa.cypher import GraphCypherQAChain
 from langchain_community.graphs import Neo4jGraph
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import AIMessage, HumanMessage

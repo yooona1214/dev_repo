@@ -9,12 +9,12 @@ from langchain_core.prompts import BasePromptTemplate
 from langchain_core.runnables import Runnable, RunnablePassthrough
 from langchain_core.tools import BaseTool
 
-from langchain.agents.format_scratchpad import format_log_to_str
-from langchain.agents.output_parsers import (
+from langchain_classic.agents.format_scratchpad import format_log_to_str
+from langchain_classic.agents.output_parsers import (
     ReActSingleInputOutputParser,
     OpenAIFunctionsAgentOutputParser,
 )
-from langchain.tools.render import render_text_description
+from langchain_classic.tools.render import render_text_description
 
 
 def create_react_agent_w_history(
@@ -40,9 +40,9 @@ def create_react_agent_w_history(
 
         .. code-block:: python
 
-            from langchain import hub
+            from langchain_classic import hub
             from langchain_community.llms import OpenAI
-            from langchain.agents import AgentExecutor, create_react_agent
+            from langchain_classic.agents import AgentExecutor, create_react_agent
 
             prompt = hub.pull("hwchase17/react")
             model = OpenAI()
@@ -123,7 +123,7 @@ from langchain_core.prompts.chat import (
     MessagesPlaceholder,
 )
 from langchain_community.tools.convert_to_openai import format_tool_to_openai_function
-from langchain.agents.format_scratchpad.openai_functions import (
+from langchain_classic.agents.format_scratchpad.openai_functions import (
     format_to_openai_function_messages,
 )
 
@@ -152,9 +152,9 @@ def create_openai_functions_agent_with_history(
 
         .. code-block:: python
 
-            from langchain_community.chat_models import ChatOpenAI
-            from langchain.agents import AgentExecutor, create_openai_functions_agent
-            from langchain import hub
+            from langchain_openai import ChatOpenAI
+            from langchain_classic.agents import AgentExecutor, create_openai_functions_agent
+            from langchain_classic import hub
 
             prompt = hub.pull("hwchase17/openai-functions-agent")
             model = ChatOpenAI()
