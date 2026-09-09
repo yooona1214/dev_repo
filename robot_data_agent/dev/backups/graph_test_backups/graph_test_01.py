@@ -2,9 +2,7 @@
 import getpass
 import os
 
-os.environ["OPENAI_API_KEY"] = (
-    "***REMOVED***"  # set with yours
-)
+os.environ.setdefault("OPENAI_API_KEY", os.getenv("OPENAI_API_KEY", ""))  # set via environment
 
 # Uncomment the below to use LangSmith. Not required.
 # os.environ["LANGCHAIN_API_KEY"] = getpass.getpass()
@@ -43,9 +41,9 @@ import pandas as pd
 from pypdf import PdfReader
 from neo4j import GraphDatabase
 from langchain_community.llms import OpenAI
-from langchain_community.chat_models import ChatOpenAI
-from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain.agents.output_parsers import (
+from langchain_openai import ChatOpenAI
+from langchain_classic.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langchain_classic.agents.output_parsers import (
     ReActSingleInputOutputParser,
     OpenAIFunctionsAgentOutputParser,
 )
@@ -59,18 +57,18 @@ import os
 #from custom_tools.issue_rag import create_vector_store_as_retriever
 #from custom_tools.create_react_agent_w_history import create_react_agent_w_history, create_openai_functions_agent_with_history
 from langchain_community.document_loaders import PyPDFLoader, CSVLoader, PyPDFDirectoryLoader
-from langchain import hub
-from langchain.agents import AgentExecutor, create_openai_functions_agent, create_react_agent, Tool
+from langchain_classic import hub
+from langchain_classic.agents import AgentExecutor, create_openai_functions_agent, create_react_agent, Tool
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import AIMessage, HumanMessage
 from langchain_core.prompts import PromptTemplate
 import pandas as pd
 from langchain_experimental.agents import create_pandas_dataframe_agent
 from langchain_experimental.tools import PythonAstREPLTool
-from langchain.tools.retriever import create_retriever_tool
+from langchain_classic.tools.retriever import create_retriever_tool
 
 # 환경 변수 설정
-os.environ["OPENAI_API_KEY"] = "sk-proj-"
+os.environ.setdefault("OPENAI_API_KEY", os.getenv("OPENAI_API_KEY", ""))  # set via environment
 os.environ["LANGCHAIN_TRACING_V2"] = "true"
 os.environ["LANGCHAIN_PROJECT"] = "Multi-agent Collaboration"
 os.environ["LANGCHAIN_ENDPOINT"] = "https://api.smith.langchain.com"
@@ -86,7 +84,7 @@ from langchain_community.utilities import SQLDatabase
 
 # set with yours
 username = "postgres"
-password = "***REMOVED***"
+password = os.environ.get("POSTGRES_PASSWORD", "")
 host = "localhost"
 port = "5432"
 database = "agentdb"
@@ -140,7 +138,7 @@ def create_relationship(tx, relationship):
     )
     tx.run(query, start_node=relationship['start_node'], end_node=relationship['end_node'], type=relationship['type'], properties=relationship['properties'])
 
-from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder, PromptTemplate
+from langchain_classic.prompts import ChatPromptTemplate, MessagesPlaceholder, PromptTemplate
 
 def create_knowledge_graph_agent():
     # Agent의 프롬프트 설정
@@ -210,7 +208,7 @@ def main():
     # Neo4j 연결 설정
     neo4j_uri = "neo4j+s://0d811677.databases.neo4j.io"
     neo4j_user = "neo4j"
-    neo4j_password = "***REMOVED***"
+    neo4j_password = os.environ.get("NEO4J_PASSWORD", "")
     
     # PDF 파일에서 텍스트 추출
     pdf_text = extract_text_from_pdf(pdf_path)

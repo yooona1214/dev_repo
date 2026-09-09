@@ -1,11 +1,11 @@
 from langchain_community.document_loaders import PyPDFLoader, CSVLoader
-from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_classic.text_splitter import RecursiveCharacterTextSplitter
 from langchain_openai import OpenAIEmbeddings
-from langchain.agents.agent_toolkits import create_retriever_tool
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.vectorstores.chroma import Chroma
-from langchain.vectorstores.faiss import FAISS
-from langchain.vectorstores import utils
+from langchain_classic.agents.agent_toolkits import create_retriever_tool
+from langchain_classic.text_splitter import RecursiveCharacterTextSplitter
+from langchain_classic.vectorstores.chroma import Chroma
+from langchain_classic.vectorstores.faiss import FAISS
+from langchain_classic.vectorstores import utils
 
 
 

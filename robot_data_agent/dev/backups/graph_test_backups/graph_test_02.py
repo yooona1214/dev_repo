@@ -7,7 +7,7 @@ from langchain_community.graphs import Neo4jGraph
 from langchain_openai import ChatOpenAI
 
 os.environ["OPENAI_API_KEY"] = (
-    "***REMOVED***"
+    os.environ["OPENAI_API_KEY"]
 )
 os.environ["LANGCHAIN_TRACING_V2"] = "true"
 os.environ["LANGCHAIN_PROJECT"] = "Multi-agent Collaboration"

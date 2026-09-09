@@ -11,7 +11,7 @@ os.environ["GPT_MODEL"] = "gpt-3.5-turbo"
 
 # Neo4j 연결 정보 설정
 
-from langchain.chains.graph_qa.cypher import GraphCypherQAChain
+from langchain_classic.chains.graph_qa.cypher import GraphCypherQAChain
 from langchain_community.graphs import Neo4jGraph
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import AIMessage, HumanMessage
@@ -22,18 +22,18 @@ from prompts.prompt import LLM_INPUTS, LLM_PROMPTS, GRAPH_INPUTS, GRAPH_PROMPTS
 graph = Neo4jGraph(
     url="neo4j+s://9bb7f8ec.databases.neo4j.io",
     username="neo4j",
-    password="***REMOVED***",
+    password=os.environ.get("NEO4J_PASSWORD", ""),
 )
 
 # graph = Neo4jGraph(
 #     url="neo4j+s://0d811677.databases.neo4j.io",
 #     username="neo4j",
-#     password="***REMOVED***",
+#     password=os.environ.get("NEO4J_PASSWORD", ""),
 # )  # connection info
 # graph = Neo4jGraph(
 #     url="bolt://100.24.123.52:7687",
 #     username="neo4j",
-#     password="***REMOVED***",
+#     password=os.environ.get("NEO4J_PASSWORD", ""),
 # )  # connection info
 graphql_chain = GraphCypherQAChain.from_llm(
     ChatOpenAI(temperature=0, api_key=API_KEY, model="gpt-4o"),

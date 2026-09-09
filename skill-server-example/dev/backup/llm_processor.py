@@ -18,8 +18,8 @@ from custom_prompts.prompts import (
     CAUSE_INPUTS,
 )
 from langchain_community.document_loaders import PyPDFLoader, CSVLoader
-from langchain import hub
-from langchain.agents import (
+from langchain_classic import hub
+from langchain_classic.agents import (
     AgentExecutor,
     create_openai_functions_agent,
     create_react_agent,
@@ -30,7 +30,7 @@ from langchain_core.prompts import PromptTemplate
 import pandas as pd
 from langchain_experimental.agents import create_pandas_dataframe_agent
 from langchain_experimental.tools import PythonAstREPLTool
-from langchain.agents import AgentExecutor
+from langchain_classic.agents import AgentExecutor
 from langchain_experimental.agents import create_pandas_dataframe_agent
 
 
@@ -129,7 +129,7 @@ symptom_agent = create_openai_functions_agent_with_history(
     llm_model, tool_symptom, symptom_prompt
 )
 
-from langchain.agents.types import AgentType
+from langchain_classic.agents.types import AgentType
 
 pandas_agent = create_pandas_dataframe_agent(
     llm=llm_model,

@@ -1,18 +1,18 @@
 import os
 from langchain_community.utilities.sql_database import SQLDatabase
-from langchain.chains import create_sql_query_chain
+from langchain_classic.chains import create_sql_query_chain
 from langchain_openai import ChatOpenAI
 from langchain_community.tools.sql_database.tool import QuerySQLDataBaseTool
-from langchain.agents import AgentExecutor
+from langchain_classic.agents import AgentExecutor
 from langchain_community.agent_toolkits import SQLDatabaseToolkit
-from langchain.agents.agent_types import AgentType
+from langchain_classic.agents.agent_types import AgentType
 from langchain_core.prompts import PromptTemplate
 from langchain_core.messages import AIMessage, HumanMessage
 
 # custom
 # from tools.tool_agent import create_sql_agent
 from tools.tools_test import SQLDataAgentToolkit
-from langchain.agents import create_sql_agent
+from langchain_classic.agents import create_sql_agent
 
 from langchain_community.vectorstores import Chroma
 from langchain_openai import OpenAIEmbeddings
@@ -21,18 +21,16 @@ from langchain_openai import OpenAIEmbeddings
 # OpenAI
 
 # setup OpenAI API Key with yours
-os.environ["OPENAI_API_KEY"] = (
-    "***REMOVED***"  # set with yours
-)
+os.environ.setdefault("OPENAI_API_KEY", os.getenv("OPENAI_API_KEY", ""))  # set via environment
 os.environ["LANGCHAIN_TRACING_V2"] = "true"
 os.environ["LANGCHAIN_PROJECT"] = "Text2SQL Test"
 os.environ["LANGCHAIN_ENDPOINT"] = "https://api.smith.langchain.com"
-os.environ["LANGCHAIN_API_KEY"] = "***REMOVED***"
+os.environ.setdefault("LANGCHAIN_API_KEY", os.getenv("LANGCHAIN_API_KEY", ""))
 
 
 # Connect to the PostgreSQL DB
 username = "postgres"
-password = "***REMOVED***"
+password = os.environ.get("POSTGRES_PASSWORD", "")
 host = "localhost"
 port = "5432"
 database = "agentdb"
