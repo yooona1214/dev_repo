@@ -3,7 +3,7 @@ import os
 os.environ["OPENAI_API_KEY"] = (
    # set with yours
 )
-OPENAI_API_KEY = "***REMOVED***"
+OPENAI_API_KEY = os.environ["OPENAI_API_KEY"]
 os.environ["LANGCHAIN_TRACING_V2"] = "true"
 os.environ["LANGCHAIN_PROJECT"] = "Multi-agent Collaboration"
 os.environ["LANGCHAIN_ENDPOINT"] = "https://api.smith.langchain.com"

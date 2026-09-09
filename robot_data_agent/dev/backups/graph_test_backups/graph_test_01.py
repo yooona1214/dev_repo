@@ -84,7 +84,7 @@ from langchain_community.utilities import SQLDatabase
 
 # set with yours
 username = "postgres"
-password = "***REMOVED***"
+password = os.environ.get("POSTGRES_PASSWORD", "")
 host = "localhost"
 port = "5432"
 database = "agentdb"
@@ -208,7 +208,7 @@ def main():
     # Neo4j 연결 설정
     neo4j_uri = "neo4j+s://0d811677.databases.neo4j.io"
     neo4j_user = "neo4j"
-    neo4j_password = "***REMOVED***"
+    neo4j_password = os.environ.get("NEO4J_PASSWORD", "")
     
     # PDF 파일에서 텍스트 추출
     pdf_text = extract_text_from_pdf(pdf_path)

@@ -2,7 +2,7 @@ import os
 os.environ.setdefault("OPENAI_API_KEY", os.getenv("OPENAI_API_KEY", ""))  # set via environment
 
 username = "postgres"
-password = "***REMOVED***"
+password = os.environ.get("POSTGRES_PASSWORD", "")
 host = "localhost"
 port = "5432"
 database = "agentdb"

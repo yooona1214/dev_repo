@@ -42,7 +42,7 @@ from langchain_core.runnables import RunnableLambda, RunnablePassthrough
 from langchain.memory import ConversationBufferMemory
 from operator import itemgetter
 
-OPENAI_API_KEY='***REMOVED***'
+OPENAI_API_KEY=os.environ["OPENAI_API_KEY"]
 
 #unique_id = uuid4().hex[0:8]
 # LangSmith 추적 기능을 활성화합니다. (선택적)

@@ -9,11 +9,11 @@ from langchain_community.graphs import Neo4jGraph
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import AIMessage, HumanMessage
 
-# graph = Neo4jGraph(url="neo4j+s://0d811677.databases.neo4j.io", username="neo4j", password="***REMOVED***") # connection info
+# graph = Neo4jGraph(url="neo4j+s://0d811677.databases.neo4j.io", username="neo4j", password=os.environ.get("NEO4J_PASSWORD", "")) # connection info
 graph = Neo4jGraph(
     url="bolt://98.82.11.37:7687",
     username="neo4j",
-    password="***REMOVED***",
+    password=os.environ.get("NEO4J_PASSWORD", ""),
 )  # connection info
 chain = GraphCypherQAChain.from_llm(
     ChatOpenAI(model="gpt-4o", temperature=0, api_key=API_KEY),

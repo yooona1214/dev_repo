@@ -8,7 +8,7 @@ from langchain_community.utilities import SQLDatabase
 
 # set with yours
 username = "postgres"
-password = "***REMOVED***"
+password = os.environ.get("POSTGRES_PASSWORD", "")
 host = "localhost"
 port = "5432"
 database = "agentdb"

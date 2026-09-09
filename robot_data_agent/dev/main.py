@@ -137,7 +137,7 @@ def load_sql():
 
     # Connect to the PostgreSQL DB
     username = "postgres"
-    password = "***REMOVED***"
+    password = os.environ.get("POSTGRES_PASSWORD", "")
     host = "localhost"
     port = "5432"
     database = "agentdb"
@@ -188,7 +188,7 @@ def graphql_agent(user_input, chat_history):
     graph = Neo4jGraph(
         url="bolt://98.82.11.37:7687",
         username="neo4j",
-        password="***REMOVED***",
+        password=os.environ.get("NEO4J_PASSWORD", ""),
     )  # connection info
     chain = GraphCypherQAChain.from_llm(
         ChatOpenAI(model="gpt-4o", temperature=0, api_key=OPENAI_API_KEY),

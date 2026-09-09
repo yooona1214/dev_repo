@@ -11,7 +11,7 @@ from langchain_experimental.agents import create_pandas_dataframe_agent
 from langchain_openai import ChatOpenAI
 from langchain.agents.agent_types import AgentType
 
-os.environ['OPENAI_API_KEY'] = '***REMOVED***'
+os.environ['OPENAI_API_KEY'] = os.environ["OPENAI_API_KEY"]
 
 # 에이전트 생성
 agent = create_pandas_dataframe_agent(
