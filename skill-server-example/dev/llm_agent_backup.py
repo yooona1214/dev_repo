@@ -23,7 +23,7 @@ from custom_prompts.prompts import (
 )
 from langchain_community.document_loaders.csv_loader import CSVLoader
 from langchain_community.document_loaders.pdf import PyPDFLoader
-from langchain.agents import AgentExecutor, AgentType
+from langchain_classic.agents import AgentExecutor, AgentType
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import AIMessage, HumanMessage
 from langchain_core.prompts import PromptTemplate
@@ -94,7 +94,7 @@ class LLMagent:
 
         """ollama test"""
 
-        from langchain_community.chat_models.ollama import ChatOllama
+        from langchain_ollama import ChatOllama
 
         llm_eve = ChatOllama(model="EEVE-Korean-10.8B:latest")
 

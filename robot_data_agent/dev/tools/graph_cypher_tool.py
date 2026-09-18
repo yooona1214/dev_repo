@@ -1,4 +1,4 @@
-from langchain.tools import tool
+from langchain_classic.tools import tool
 from graph_cypher_chain import get_results
 
 

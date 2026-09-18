@@ -6,7 +6,7 @@ from langchain import hub
 from langchain.agents import AgentExecutor, create_openai_functions_agent, create_react_agent
 from langchain_openai import ChatOpenAI
 
-OPENAI_API_KEY='***REMOVED***'
+OPENAI_API_KEY=os.environ["OPENAI_API_KEY"]
 
 
 import pika

@@ -1,3 +1,4 @@
+import os
 from langchain.chains import MultiPromptChain
 from langchain_openai import ChatOpenAI
 from operator import itemgetter
@@ -14,7 +15,7 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores.chroma import Chroma
 from langchain_core.output_parsers import StrOutputParser
 
-OPENAI_API_KEY='***REMOVED***'
+OPENAI_API_KEY=os.environ["OPENAI_API_KEY"]
 
 model = ChatOpenAI(temperature=0, api_key=OPENAI_API_KEY)
 promptNames = ["physics", "math", "history"]

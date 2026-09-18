@@ -10,7 +10,7 @@ from langchain_openai import ChatOpenAI
 from langchain.tools.render import format_tool_to_openai_function
 from langchain_core.messages import FunctionMessage, BaseMessage
 
-OPENAI_API_KEY='***REMOVED***'
+OPENAI_API_KEY=os.environ["OPENAI_API_KEY"]
 
 
 

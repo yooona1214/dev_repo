@@ -1,10 +1,10 @@
-from langchain.tools import BaseTool
+from langchain_classic.tools import BaseTool
 from typing import Optional, Type
-from langchain.callbacks.manager import (
+from langchain_classic.callbacks.manager import (
     CallbackManagerForToolRun,
 )
 import pandas as pd
-from langchain.pydantic_v1 import BaseModel, Field
+from pydantic import BaseModel, Field
 
 
 class CSVProcessInput(BaseModel):

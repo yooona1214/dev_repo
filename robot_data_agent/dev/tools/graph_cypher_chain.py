@@ -1,7 +1,7 @@
-from langchain.chains import GraphCypherQAChain
-from langchain.chains.conversation.memory import ConversationBufferMemory
+from langchain_classic.chains import GraphCypherQAChain
+from langchain_classic.chains.conversation.memory import ConversationBufferMemory
 from langchain_community.graphs import Neo4jGraph
-from langchain.prompts.prompt import PromptTemplate
+from langchain_classic.prompts.prompt import PromptTemplate
 from langchain_openai import ChatOpenAI
 from retry import retry
 import logging

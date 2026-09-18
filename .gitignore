@@ -1,0 +1,5 @@
+__pycache__/
+*.pyc
+.venv/
+*.env
+open_ai_key.txt

@@ -1,3 +1,4 @@
+import os
 from langchain.chains.graph_qa.cypher_utils import CypherQueryCorrector, Schema
 from langchain_openai import ChatOpenAI
 from langchain.graphs import Neo4jGraph
@@ -30,7 +31,7 @@ class GraphTool(BaseTool):
         graph = Neo4jGraph(
                 url="bolt://54.235.226.49:7687",  
                 username="neo4j",  
-                password="***REMOVED***"
+                password=os.environ.get("NEO4J_PASSWORD", "")
             )
 
         # Cypher validation tool for relationship directions

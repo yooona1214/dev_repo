@@ -1,3 +1,4 @@
+import os
 from langchain.document_loaders import WebBaseLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 
@@ -24,7 +25,7 @@ from langchain.agents import AgentExecutor
 
 dotenv.load_dotenv()
 
-OPENAI_API_KEY='***REMOVED***'
+OPENAI_API_KEY=os.environ["OPENAI_API_KEY"]
 def main():
     print("PDF를 불러오는중...")
     loader1 = PyPDFLoader("LG1세대[FnB2.0]_사용자매뉴얼.pdf")

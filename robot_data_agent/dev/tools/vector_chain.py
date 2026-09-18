@@ -1,9 +1,9 @@
 from json import loads, dumps
-from langchain.prompts.prompt import PromptTemplate
+from langchain_classic.prompts.prompt import PromptTemplate
 
-from langchain_community.vectorstores import Neo4jVector
-from langchain.chains import RetrievalQAWithSourcesChain
-from langchain.chains.conversation.memory import ConversationBufferMemory
+from langchain_neo4j import Neo4jVector
+from langchain_classic.chains import RetrievalQAWithSourcesChain
+from langchain_classic.chains.conversation.memory import ConversationBufferMemory
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from retry import retry
 import logging

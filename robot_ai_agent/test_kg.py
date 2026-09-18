@@ -1,9 +1,10 @@
+import os
 from neo4j import GraphDatabase
 
 # Neo4j 드라이버 설정
 uri = "bolt://localhost:7687"
 user = "neo4j"
-password = "test"
+password = os.environ.get("NEO4J_PASSWORD", "")
 driver = GraphDatabase.driver(uri, auth=(user, password))
 
 def run_query(query):

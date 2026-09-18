@@ -1,3 +1,4 @@
+import os
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 
 from langchain.vectorstores.chroma import Chroma
@@ -25,7 +26,7 @@ import re
 
 #dotenv.load_dotenv()
 
-OPENAI_API_KEY='***REMOVED***'
+OPENAI_API_KEY=os.environ["OPENAI_API_KEY"]
 
 def main():
     print("필요한 파일을 불러오는중...")

@@ -75,7 +75,7 @@ csv_path2 = pkg_resources.files("robot_info").joinpath("floor_description_240912
 # graph = Neo4jGraph(
 #                 url="bolt://54.235.226.49:7687",  
 #                 username="neo4j",  
-#                 password="***REMOVED***"
+#                 password=os.environ.get("NEO4J_PASSWORD", "")
 #             )
 
 

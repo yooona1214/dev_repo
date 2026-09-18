@@ -1,8 +1,8 @@
 import os
-os.environ["OPENAI_API_KEY"] = "***REMOVED***"
+os.environ.setdefault("OPENAI_API_KEY", os.getenv("OPENAI_API_KEY", ""))  # set via environment
 
 username = "postgres"
-password = "***REMOVED***"
+password = os.environ.get("POSTGRES_PASSWORD", "")
 host = "localhost"
 port = "5432"
 database = "agentdb"
@@ -16,7 +16,7 @@ print(db.dialect)
 print(db.get_usable_table_names())
 print(db.table_info)
 
-from langchain.chains import create_sql_query_chain
+from langchain_classic.chains import create_sql_query_chain
 from langchain_openai import ChatOpenAI
 
 llm = ChatOpenAI(model="gpt-3.5-turbo", temperature=0)
